@@ -20,6 +20,11 @@
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
 
+%\VignetteIndexEntry{paper title}
+%\VignetteDepends{packages (usually the ones you load with library() here)}
+%\VignetteKeywords{keywords}
+%\VignettePackage{OPSRtools}
+
 \begin{document}
 
 %% do not edit, for illustration only
