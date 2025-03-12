@@ -6,6 +6,14 @@
 \usepackage{booktabs}
 
 %% load any required packages FOLLOWING this line
+\usepackage{framed}
+\usepackage{orcidlink}
+
+%% custom commands
+% \let\proglang=\textsf taken from jss.cls
+\newcommand{\proglang}[1]{\textsf{#1}}
+\newcommand{\class}[1]{`\code{#1}'}
+\newcommand{\fct}[1]{\code{#1()}}
 
 \SweaveOpts{engine=R, eps=FALSE, keep.source = TRUE}
 <<preliminaries, echo=FALSE, results=hide>>=
@@ -23,59 +31,33 @@ options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 
 \begin{article}
 
-\title{Capitalized Title Here}
-\author{by Author One, Author Two and Author Three}
+\title{\pkg{OPSRtools}: Estimation and Post-Estimation Routines for the \pkg{OPSR} Package}
+\author{by Daniel Heimgartner \orcidlink{0000-0002-0643-8690}}
 
 \maketitle
 
 \abstract{
-An abstract of less than 150 words.
+An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and what \pkg{OPSRtools} brings to the table (and why separated).
 }
 
-\section{Section title in sentence case}
-
-Introductory section which may include references in parentheses
-\citep{R}, or cite a reference such as \citet{R} in the text.
-
-\section{Another section}
-
-Can we use \code{code}?
-
-\section{Another section}
-
-There will likely be several sections, perhaps including code snippets, such as:
-
-\begin{example}
-  x <- 1:10
-  result <- myFunction(x)
-\end{example}
+\section{Introduction}
 
 \section{Summary}
 
+\begin{leftbar}
 This file is only a basic article template. For full details of \emph{The R Journal} style and information on how to prepare your article for submission, see the \href{https://journal.r-project.org/share/author-guide.pdf}{Instructions for Authors}.
+\end{leftbar}
 
 \bibliography{RJreferences}
 
-\address{Author One\\
-  Affiliation\\
-  Address\\
-  Country\\
-  (ORCiD if desired)\\
-  \email{author1@work}}
-
-\address{Author Two\\
-  Affiliation\\
-  Address\\
-  Country\\
-  (ORCiD if desired)\\
-  \email{author2@work}}
-
-\address{Author Three\\
-  Affiliation\\
-  Address\\
-  Country\\
-  (ORCiD if desired)\\
-  \email{author3@work}}
+\address{Daniel Heimgartner\\
+  Institute for Transport Planning and Systems\\
+  Eidgen\"ossische Technische Hochschule Z\"urich\\
+  IFW C 46.1\\
+  Haldeneggsteig 4\\
+  8092 Z\"urich, Switzerland\\
+  \orcidlink{0000-0002-0643-8690} 0000-0002-0643-8690\\
+  \email{daniel.heimgartner@ivt.baug.ethz.ch}}
 
 \end{article}
 
