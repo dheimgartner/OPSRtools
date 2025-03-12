@@ -39,14 +39,7 @@ Introductory section which may include references in parentheses
 
 \section{Another section}
 
-This section may contain a figure such as Figure~\ref{figure:rlogo}.
-
-\begin{figure}[htbp]
-  \centering
-  \includegraphics{Rlogo-5}
-  \caption{The logo of R.}
-  \label{figure:rlogo}
-\end{figure}
+Can we use \code{code}?
 
 \section{Another section}
 
