@@ -1,5 +1,31 @@
+#' Select a Model in a Stepwise Algorithm
+#'
+#' Iteratively calls [`opsr_step`] and compares the resulting model to the
+#' current winner (as evaluated by a selected loss function).
+#'
+#' @param object an object of class `"opsr"`.
+#' @param pseq sequence of p-value thresholds (each of which is passed as `pval`
+#'   to [`opsr_step`]).
+#' @param log environment to keep track of changes to `object` (in particular
+#'   variables being eliminated).
+#' @param verbose if `TRUE`, prints working information during computation.
+#' @param verbose.kfold passed as `verbose` to [`opsr_kfold`].
+#' @param loss The loss function for model comparison. Can be abbreviated.
+#'   See 'Details' section for more information.
+#' @param ... additional arguments passed to [`opsr_select`]
+#'
+#' @return An object of class `"opsr.kfold"`.
+#'
+#' @details
+#' Currently four loss functions are available which can be selected via the
+#' `loss` argument. The loss is then computed for the two models to be compared
+#' and a winner is selected. Can be one of `"kfold"` (see also [`opsr_kfold`]),
+#' `"aic"` for AIC, `"bic"` for BIC and `"lrt"` for a likelihood ratio test.
+#'
+#' @seealso [`opsr_select`], [`opsr_kfold`]
+#' @export
 opsr_select <- function(object, pseq = seq(0.9, 0.1, by = -0.1), log = new.env(),
-                        keep = NULL, verbose = TRUE, verbose.kfold = FALSE,
+                        verbose = TRUE, verbose.kfold = FALSE,
                         loss = c("kfold", "aic", "bic", "lrt"),
                         ...) {
   start_time <- Sys.time()

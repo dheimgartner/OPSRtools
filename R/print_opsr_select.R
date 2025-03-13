@@ -1,3 +1,17 @@
+#' Print Method for OPSR Select Objects
+#'
+#' Prints the original model and the final model (winner) as well as the
+#' stepwise model path.
+#'
+#' @param x an object of class `"opsr.select"`.
+#' @param digits minimum number of significant digits to be used for most numbers (passed to [`stats::printCoefmat`]).
+#' @param print.call if `TRUE`, prints the underlying [`opsr_select`] call.
+#' @param print.elim.hist if `TRUE`, prints the elimination history. See
+#'   'Details' section for more information.
+#' @param ... further arguments passed to or from other methods.
+#'
+#' @return Prints `x` in 'pretty' form and returns it invisibly.
+#'
 #' @method print opsr.select
 #' @export
 print.opsr.select <- function(x, digits = max(3L, getOption("digits") - 3L),

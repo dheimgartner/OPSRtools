@@ -1,6 +1,19 @@
-## TODO
-## impelement keep (vars which should never be dropped)
-opsr_step <- function(object, pval, log = new.env(), keep = NULL, .step = 1, ...) {
+#' Step Function for OPSR Model Fits
+#'
+#' Excludes all coefficients with p-values below `pval` and fits again.
+#'
+#' @param object an object of class `"opsr"`.
+#' @param pval coefficients with p-values < `pval` are dropped.
+#' @param log environment to keep track of changes to `object` (in particular
+#'   variables being eliminated).
+#' @param .step used to generate identifier in `log` environment. Used in
+#'   [`opsr_select`].
+#' @param ... additional arguments passed to [`update`] (and hence [`opsr`]).
+#'
+#' @return An object of class `"opsr"`.
+#' @seealso [`opsr_select`]
+#' @export
+opsr_step <- function(object, pval, log = new.env(), .step = 1, ...) {
   partial_match <- function(x, y) {
     sapply(x, function(v) sum(grepl(v, y, fixed = TRUE)))
   }
@@ -16,7 +29,7 @@ opsr_step <- function(object, pval, log = new.env(), keep = NULL, .step = 1, ...
     sapply(fcts, function(x) length(levels(mf[[x]])))
   }
 
-  get_terms2drop <- function(object, pval, keep = NULL) {
+  get_terms2drop <- function(object, pval) {
     coef_table <- summary(object)$coef_table
     candi <- row.names(subset(coef_table, subset = `Pr(> t)` > pval))
     candi <- candi[grepl("^s_|^o[0-9]_", candi)]
