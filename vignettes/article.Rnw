@@ -17,6 +17,8 @@
 
 \SweaveOpts{engine=R, eps=FALSE, keep.source = TRUE}
 <<preliminaries, echo=FALSE, results=hide>>=
+library("OPSRtools")
+library("OPSR")
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
 
@@ -47,6 +49,8 @@ An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and wha
 
 \section{Introduction}
 
+\section{Illustrations}
+
 \begin{leftbar}
 \begin{itemize}
 \item Write about weighted paired $t$~test.
@@ -55,11 +59,61 @@ An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and wha
 \end{itemize}
 \end{leftbar}
 
+Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling telework adoption and weekly kilometers traveled. Telework adoption was differentiated into three segments: no telework (NTW), non-usual telework (NUTW, <3 days/week) and usual telework (UTW, 3+ days/week). The data is attached, documented (\code{?timeuse}) and can be loaded by
+%
+<<data>>=
+data("timeuse", package = "OPSRtools")
+@
+
+Using \pkg{OPSR}'s functionality, the model can be estimated by
+%
+<<full-model>>=
+f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
+  log_commute_km + age + dogs + driverlicense + educ_higher + fixed_workplace +
+  grocery_shopper + hh_income + hh_size + isco_clerical + isco_craft +
+  isco_managers + isco_plant + isco_professionals + isco_service + isco_agri +
+  isco_tech + married + n_children + freq_onl_order + parking_home +
+  parking_work + permanent_employed + rents_home + res_loc + sex_male +
+  shift_work + swiss + vacation + workload + young_kids |
+  start_tracking + log_commute_km + age + dogs + driverlicense + educ_higher +
+  fixed_workplace + grocery_shopper + hh_income + hh_size + married +
+  n_children + freq_onl_order + parking_home + parking_work +
+  permanent_employed + rents_home + res_loc + sex_male + shift_work + swiss +
+  vacation + workload + young_kids |
+  start_tracking + log_commute_km + age +
+  dogs + driverlicense + educ_higher + fixed_workplace + grocery_shopper +
+  hh_income + hh_size + married + n_children + freq_onl_order + parking_home +
+  parking_work + permanent_employed + rents_home + res_loc + sex_male +
+  shift_work + swiss + vacation + workload + young_kids |
+  start_tracking + log_commute_km + age + dogs + driverlicense + educ_higher +
+  fixed_workplace + grocery_shopper + hh_income + hh_size + married +
+  n_children + freq_onl_order + parking_work + permanent_employed + rents_home +
+  res_loc + sex_male + swiss + vacation + workload + young_kids
+
+fit <- opsr(f, data = timeuse, weights = timeuse$weight)
+@
+
+This model is likely to be over-specified and as a first step, the analyst usually starts by excluding insignificant variables (below some threshold). Given the above formula object with many terms/variables, this process can be tedious or even error prone. The function \fct{opsr\_step} allows the modeler to do this automatically. For example, excluding all variables which are not significant at the 10\% level
+%
+<<>>=
+fit_10 <- opsr_step(fit, pval = 0.1)
+summary(fit_10)
+@
+
+
 \section{Summary}
 
 \begin{leftbar}
 This file is only a basic article template. For full details of \emph{The R Journal} style and information on how to prepare your article for submission, see the \href{https://journal.r-project.org/share/author-guide.pdf}{Instructions for Authors}.
 \end{leftbar}
+
+\section*{Computational details}
+
+The results in this paper were obtained using
+\proglang{R}~\Sexpr{paste(R.Version()[6:7], collapse = ".")} \citep{R} with the packages \pkg{OPSR}~\Sexpr{packageVersion("OPSR")} and ... \proglang{R} itself
+and all packages used are available from the Comprehensive
+\proglang{R} Archive Network (CRAN) at
+\url{https://CRAN.R-project.org/}.
 
 \bibliography{RJreferences}
 

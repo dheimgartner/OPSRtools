@@ -13,3 +13,6 @@ Imports:
     methods,
     OPSR,
     texreg
+Depends: 
+    R (>= 2.10)
+LazyData: true
