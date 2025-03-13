@@ -41,6 +41,6 @@ kfplot <- function(x, i = c("ll_mean", "ll_p_mean", "r2"), main = NULL,
 
   means <- aggregate(values ~ ind + sample, data = dfl, FUN = mean)
   means <- means[order(means$ind), ]
-  points(1:length(bp$names), means$values, col = "red")
+  points(1:length(bp$names), means$values, col = "red", pch = 19)
   invisible(bp)
 }
