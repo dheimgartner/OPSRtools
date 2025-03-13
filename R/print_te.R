@@ -1,4 +1,5 @@
 #' @method print te
+#' @export
 print.te <- function(x, digits = max(3L, getOption("digits") - 3L),
                      signif.legend = TRUE, ...) {
   nReg <- ncol(x)

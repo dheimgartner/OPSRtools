@@ -42,10 +42,18 @@ options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 \maketitle
 
 \abstract{
-An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and what \pkg{OPSRtools} brings to the table (and why separated).
+An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and what \pkg{OPSRtools} brings to the table (and why separated). \pkg{OPSRtools} helps the modeler during model selection (\fct{opsr\_select}), to cross-validate (\fct{opsr\_kfold}), to compute treatment effects (\fct{opsr\_ate}) and to visualize the key insights from a model (\fct{pairs}). \code{print} methods for the various underlying objects allow the analyst to easily grasp the object's key information.
 }
 
 \section{Introduction}
+
+\begin{leftbar}
+\begin{itemize}
+\item Write about weighted paired $t$~test.
+\item Write about weights being automatically used (e.g., in \fct{opsr\_ate})
+\item \fct{opsr\_ate} prepares the data returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} performs main computations on this data, in particular weighted paired $t$~test. \fct{print.summary.opsr.ate} presents the results.
+\end{itemize}
+\end{leftbar}
 
 \section{Summary}
 

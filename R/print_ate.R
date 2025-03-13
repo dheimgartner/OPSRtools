@@ -1,4 +1,5 @@
 #' @method print ate
+#' @export
 print.ate <- function(x, digits = max(3L, getOption("digits") - 3L),
                       signif.legend = TRUE, ...) {
   p.vals <- to.signif.codes(attr(x, "p.vals"))
