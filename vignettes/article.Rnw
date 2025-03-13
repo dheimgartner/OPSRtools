@@ -25,6 +25,16 @@ colvec <- c("#4c5760","#ff8811","#48a9a6")
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
 
+<<cache, echo=FALSE>>=
+cache <- readRDS("./cache.rds")
+fit <- cache$fit
+fit_10 <- cache$fit_10
+fit_aic <- cache$fit_aic
+kfold <- cache_kfold$kfold
+kfold_10 <- cache_kfold$kfold_10
+kfold_aic <- cache_kfold$kfold_aic
+@
+
 %\VignetteIndexEntry{paper title}
 %\VignetteDepends{packages (usually the ones you load with library() here)}
 %\VignetteKeywords{keywords}
@@ -70,7 +80,7 @@ data("timeuse", package = "OPSRtools")
 %
 Using \pkg{OPSR}'s functionality, the model can be estimated by
 %
-<<full-model, results=hide>>=
+<<full-model, results=hide, eval=FALSE>>=
 f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
   log_commute_km + age + dogs + driverlicense + educ_higher + fixed_workplace +
   grocery_shopper + hh_income + hh_size + isco_clerical + isco_craft +
@@ -107,7 +117,7 @@ shere \code{printLevel = 0} is passed to \fct{opsr} and avoids printing working 
 
 While this model (\code{fit\_10}) has considerably fewer parameters than \code{fit}, it is not necessarily the ``best'' model. To more rigorously sparsify the model and carefully evaulate each intermediate model, the function \fct{opsr\_select} can be used
 %
-<<opsr-select>>=
+<<opsr-select, eval=FALSE>>=
 fit_aic <- opsr_select(fit, loss = "aic", printLevel = 0)
 @
 %
@@ -126,13 +136,6 @@ print(anova(fit_10, fit_aic, fit), print.formula = FALSE)
 @
 %
 where the likelihood ratio test would select the full model. However, the full model is likely over-fitting the data (in particular for the usual teleworkers, UTWers). To further investigate the out-of-sample performance, k-fold cross-validation can be performed
-%
-<<cache-kfold, echo=FALSE>>=
-cache_kfold <- readRDS("./cache_kfold.rds")
-kfold <- cache_kfold$kfold
-kfold_10 <- cache_kfold$kfold_10
-kfold_aic <- cache_kfold$kfold_aic
-@
 %
 <<opsr-kfold, eval=FALSE>>=
 ## TODO
@@ -207,8 +210,8 @@ Figure~\ref{fig:pairs} presents all potential counterfactual outcomes. The diago
 <<plot-pairs, echo=FALSE, fig=TRUE, height=7.5, width=7.5>>=
 pairs(ate, labels.diag = c("NTWing", "NUTWing", "UTWing"), col = colvec,
   labels.reg = c("NTWers", "NUTWers", "UTWers"), cex = 1.75, cex.labels = 2,
-  font.labels = 2,lwd.dens = 2.5, lty.diag = 4, xlim = c(0, 850),
-  ylim = c(0, 850))
+  font.labels = 2,lwd.dens = 2.5, lty.diag = 4, xlim = c(0, 1000),
+  ylim = c(0, 1000))
 @
 \caption{\label{fig:pairs} Pairs plot: Comparison of conditional expectations (weekly km traveled) by telework status in the lower panel. Corresponding distributions on the diagonal. Average treatment effects in the upper panel.}
 \end{figure}
