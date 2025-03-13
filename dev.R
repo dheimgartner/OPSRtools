@@ -4,6 +4,10 @@ library(OPSR)
 
 ## minimal example for each "functionality"
 ## data prep
+
+## TODO
+## come up with simulation specification that shows treatment effects...
+
 sim_dat <- opsr_simulate()
 dat <- sim_dat$data
 
@@ -54,7 +58,7 @@ ate <- opsr_ate(fit_select, type = "response")
 print(ate)
 sry_ate <- summary(ate)
 print(sry_ate)
-print(sry_ate$ate)
+test <- print(sry_ate$ate)
 print(sry_ate$te)
 
 

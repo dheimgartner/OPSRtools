@@ -1,3 +1,11 @@
+#' Print Method for Summary OPSR ATE Objects
+#'
+#' @param x an object of class `"summary.opsr.ate"`.
+#' @param digits minimum number of significant digits to be used for most numbers (passed to [`stats::printCoefmat`]).
+#' @param print.call if `TRUE`, prints the underlying call.
+#'
+#' @return Prints `x` in 'pretty' form and returns it invisibly.
+#'
 #' @method print summary.opsr.ate
 #' @export
 print.summary.opsr.ate <- function(x, digits = max(3L, getOption("digits") - 3L),

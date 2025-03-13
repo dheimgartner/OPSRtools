@@ -1,4 +1,18 @@
-## ... passed to predict.opsr
+#' Treatment Effect Computations for OPSR Model Fits
+#'
+#' @param object object an object of class `"opsr"`.
+#' @param type see [`predict.opsr`] for details.
+#' @param weights a vector of weights. If `NULL` then weights from `object` will
+#'   be used.
+#' @param ... additional arguments passed to [`predict.opsr`].
+#'
+#' @return An object of class `"opsr.ate"`.
+#'
+#' @details
+#' This function only prepares the input to a further call to [`summary.opsr.ate`].
+#'
+#' @seealso [`summary.opsr.ate`]
+#' @export
 opsr_ate <- function(object, type, weights = NULL, ...) {
   if (is.null(weights)) {
     weights <- object$weights

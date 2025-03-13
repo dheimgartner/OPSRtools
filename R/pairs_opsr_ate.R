@@ -1,4 +1,36 @@
+#' Pairs Plot for OPSR ATE Objects
+#'
+#' @param x an object of class `"opsr.ate"`.
+#' @param pch plotting 'character', i.e., symbol to use. See also [`pch`].
+#' @param labels.diag labels used in the diagonal panels.
+#' @param labels.reg labels for the treatment regimes.
+#' @param col colour vector.
+#' @param add.rug if `TRUE`, adds rugs to the lower panels.
+#' @param lower.digits rounding of the digits in the lower panel.
+#' @param diag.digits rounding of the digits in the diagonal panel.
+#' @param lwd.dens linewidth of the densities in the diagonal panel.
+#' @param diag.cex.text `cex` for the text in the diagonal panel.
+#' @param upper.digits rounding of the digits in the upper panel.
+#' @param upper.cex.text `cex` for the text in the upper panel.
+#' @param prefix for the number plotted in the upper panel.
+#' @param postfix for the number plotted in the upper panel.
+#' @param lty.diag linetype for the diagonal panel.
+#' @param ... further arguments passed to or from other methods.
+#'
+#' @return Returns `x` invisibly.
+#'
+#' @details
+#' Presents all potential counterfactual outcomes. The diagonal depicts
+#' distributions in any given treatment regime and separate by the current
+#' (factual) treatment group. The weighted mean values are shown as red numbers.
+#' The lower triangular panels compare the model-implied (predicted) outcomes
+#' of two treatment regimes again separate by current treatment group. The red
+#' line indicates the 45-degree line of equal outcomes while the red squares
+#' depict again the weighted mean values. The upper triangular panels show
+#' (weighted) average treatment effects.
+#'
 #' @method pairs opsr.ate
+#' @seealso [`pairs`]
 #' @export
 pairs.opsr.ate <- function(x, pch = 21, labels.diag = paste0("T", 1:x$nReg),
                            labels.reg = paste0("G", 1:x$nReg), col = 1:x$nReg,

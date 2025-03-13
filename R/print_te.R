@@ -1,3 +1,14 @@
+#' Print Method for TE Objects
+#'
+#' @param x an object of class `"te"`.
+#' @param digits minimum number of significant digits to be used for most numbers
+#'   (passed to [`stats::printCoefmat`]).
+#' @param signif.legend if `TRUE`, a legend for the 'significance stars' is printed.
+#' @param ... further arguments passed to or from other methods.
+#'
+#' @return Prints `x` in 'pretty' form and returns reformatted treatment effects
+#'   invisibly.
+#'
 #' @method print te
 #' @export
 print.te <- function(x, digits = max(3L, getOption("digits") - 3L),
