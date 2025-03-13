@@ -9,62 +9,28 @@
 #' @param log environment to keep track of changes to `object` (in particular
 #'   variables being eliminated).
 #' @param verbose if `TRUE`, prints working information during computation.
-#' @param verbose.kfold passed as `verbose` to [`opsr_kfold`].
 #' @param loss The loss function for model comparison. Can be abbreviated.
 #'   See 'Details' section for more information.
 #' @param ... additional arguments passed to [`opsr_select`]
 #'
-#' @return An object of class `"opsr.kfold"`.
+#' @return An object of class `"opsr.select"`.
 #'
 #' @details
-#' Currently four loss functions are available which can be selected via the
+#' Currently three loss functions are available which can be selected via the
 #' `loss` argument. The loss is then computed for the two models to be compared
-#' and a winner is selected. Can be one of `"kfold"` (see also [`opsr_kfold`]),
-#' `"aic"` for AIC, `"bic"` for BIC and `"lrt"` for a likelihood ratio test.
+#' and a winner is selected. Can be one of `"aic"` for AIC, `"bic"` for BIC and
+#' `"lrt"` for a likelihood ratio test.
 #'
-#' @seealso [`opsr_select`], [`opsr_kfold`]
+#' @seealso [`opsr_select`]
 #' @export
 opsr_select <- function(object, pseq = seq(0.9, 0.1, by = -0.1), log = new.env(),
-                        verbose = TRUE, verbose.kfold = FALSE,
-                        loss = c("kfold", "aic", "bic", "lrt"),
+                        verbose = TRUE, loss = c("aic", "bic", "lrt"),
                         ...) {
   start_time <- Sys.time()
   cache <- new.env()  # tmp store for loss computations in each iteration
   loss_cache <- list()  # stores loss computations of each step
   loss_res <- list()  # stores formatted loss results for print
   winner_hist <- list()  # stores sequence of winners
-
-  kfold <- function(model.1, model.2) {
-    ## TODO
-    ## here the costly cross-validation gets performed for a model
-    ## already cross-validated... => cache (and retrieve winner)
-    models <- list(model.1, model.2)
-    comp <- lapply(seq_along(models), function(i) {
-      kf <- opsr_kfold(models[[i]], printLevel = 0, verbose = verbose.kfold)
-      cache[[paste0("model.", i)]] <- kf
-      ## use weighted mean here as otherwise if nobs per regime greatly
-      ## differs, the fit of some regimes does barely matter...
-      wm <- kf["ll", MARGIN = 1, FUN = function(x) {
-        tab <- table(names(x))
-        weights <- 1 / tab
-        weights <- weights / sum(weights)
-        weights <- weights[names(x)]
-        weighted.mean(x, w = weights)
-      }]
-      mean(wm)  # average over folds
-    })
-
-    ll <- Reduce(c, comp)
-    out <- list()
-    if (ll[1] > ll[2]) out$winner <- 1 else out$winner <- 2
-    out$loss_res <- list(  # for print
-      model.1 = ll[1],
-      model.2 = ll[2],
-      test = ll[1] - ll[2],
-      winner = out$winner
-    )
-    out
-  }
 
   aic <- function(model.1, model.2) {
     aic.1 <- summary(model.1)$GOF$AIC

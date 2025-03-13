@@ -9,8 +9,7 @@ opsr_select(
   pseq = seq(0.9, 0.1, by = -0.1),
   log = new.env(),
   verbose = TRUE,
-  verbose.kfold = FALSE,
-  loss = c("kfold", "aic", "bic", "lrt"),
+  loss = c("aic", "bic", "lrt"),
   ...
 )
 }
@@ -25,26 +24,24 @@ variables being eliminated).}
 
 \item{verbose}{if \code{TRUE}, prints working information during computation.}
 
-\item{verbose.kfold}{passed as \code{verbose} to \code{\link{opsr_kfold}}.}
-
 \item{loss}{The loss function for model comparison. Can be abbreviated.
 See 'Details' section for more information.}
 
 \item{...}{additional arguments passed to \code{\link{opsr_select}}}
 }
 \value{
-An object of class \code{"opsr.kfold"}.
+An object of class \code{"opsr.select"}.
 }
 \description{
 Iteratively calls \code{\link{opsr_step}} and compares the resulting model to the
 current winner (as evaluated by a selected loss function).
 }
 \details{
-Currently four loss functions are available which can be selected via the
+Currently three loss functions are available which can be selected via the
 \code{loss} argument. The loss is then computed for the two models to be compared
-and a winner is selected. Can be one of \code{"kfold"} (see also \code{\link{opsr_kfold}}),
-\code{"aic"} for AIC, \code{"bic"} for BIC and \code{"lrt"} for a likelihood ratio test.
+and a winner is selected. Can be one of \code{"aic"} for AIC, \code{"bic"} for BIC and
+\code{"lrt"} for a likelihood ratio test.
 }
 \seealso{
-\code{\link{opsr_select}}, \code{\link{opsr_kfold}}
+\code{\link{opsr_select}}
 }

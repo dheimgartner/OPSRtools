@@ -1,3 +1,17 @@
+#' Refit an OPSR Model on New Data
+#'
+#' @param object an object of class `"opsr"`.
+#' @param data a data frame containing the variables in the model.
+#' @param ... additional arguments passed to [`opsr`].
+#'
+#' @return An object of class `"opsr"`
+#' @export
+opsr_from_opsr <- function(object, data, ...) {
+  fit <- opsr(object$formula, data = data, fixed = object$fixed, start = object$start,
+              ...)
+  fit
+}
+
 # opsr_from_opsr <- function(object, data, ...) {
 #   if (OPSR:::is_opsr_null(object)) {
 #     stop("Null model not supported")
@@ -12,9 +26,3 @@
 #   fit <- eval(oc, parent.frame())
 #   fit
 # }
-
-opsr_from_opsr <- function(object, data, ...) {
-  fit <- opsr(object$formula, data = data, fixed = object$fixed, start = object$start,
-              ...)
-  fit
-}

@@ -6,20 +6,15 @@ to.signif.codes <- function(pv) {
   Signif
 }
 
-## use MARGIN = 2 for ll_mean
+#' Extract Method for OPSR kfold Object
+#'
+#' @param x an object of class `"opsr.kfold"`.
+#' @param i the loss to extract (see 'Value' in [`loss`]).
+#'
+#' @return A list of length k (where k is the number of folds).
+#' @seealso [`loss`]
 #' @export
-`[.opsr.kfold` <- function(x, i, MARGIN, FUN = function(x) x, .align = TRUE) {
-  x. <- sapply(x, function(x) x[[i]])
-  if (.align & !is.matrix(x.)) {
-    l <- sapply(x., length)
-    x. <- sapply(x., function(x) x[1:min(l)])
-  }
-  x. <- apply(t(x.), MARGIN = MARGIN, FUN = FUN)
-  dimnames(x.) <- names(x.) <- NULL
+`[.opsr.kfold` <- function(x, i) {
+  x. <- lapply(x, function(x) x[[i]])
   x.
 }
-
-#' @importFrom methods setMethod
-#' @importFrom texreg extract
-methods::setMethod("extract", signature = className("opsr.select", "TWTE"),
-                   definition = OPSR:::extract.opsr)

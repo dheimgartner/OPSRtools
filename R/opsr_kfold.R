@@ -1,3 +1,25 @@
+## TODO
+## summary.opsr.kfold and print.summary.opsr.kfold might be useful
+
+#' k-Fold Cross-Validation for OPSR Model Fits
+#'
+#' Computes out-of-sample losses.
+#'
+#' @param object an object of class `"opsr"`.
+#' @param k number of folds.
+#' @param verbose if `TRUE`, prints working information during iterations over
+#'   folds.
+#' @param ... additional arguments passed to [`opsr_from_opsr`]
+#'
+#' @return An object of class `"opsr.kfold"`. See 'Details' section for more
+#'   information.
+#'
+#' @details
+#' The returned object is of length `k`, where each element contains the losses
+#' as computed by [`loss`].
+#'
+#' @seealso [`opsr_from_opsr`], [`loss`], [`[.opsr.kfold`]
+#' @export
 opsr_kfold <- function(object, k = 10, verbose = TRUE, ...) {
   if (!is(object, "opsr")) stop("'object' has to be of class 'opsr'.")
   n <- object$nObs[["Total"]]

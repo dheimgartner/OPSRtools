@@ -1,4 +1,22 @@
-## out-of-sample gofs
+#' Out-Of-Sample Goodness of Fit Indicators
+#'
+#' Computes a loss for out-of-sample data points.
+#'
+#' @param object an object of class `"opsr"`.
+#' @param data a data frame containing the variables in the model (usually from
+#'   a call to [`model.frame.opsr`]).
+#' @param test_ind indicator for the test data.
+#' @param ... addditional arguments passed to [`opsr_from_opsr`].
+#'
+#' @return A list containing the losses:
+#' * `z`: The regime/treatment membership of the test data.
+#' * `ll`: The out-of-sample log-likelihood of the test data.
+#' * `ll_mean`: `ll`averaged over each regime and in total.
+#' * `ll_p`: The out-of-sample log-likelihood of the test data for the selection
+#'   process.
+#' * `ll_p_mean`: `ll_p` averaged over each regime and in total.
+#' * `r2`: Coefficient of determination for each regime and in total.
+#' @export
 loss <- function(object, data, test_ind, ...) {
   mf <- model.frame(object, data = data)
   mf_test <- mf[test_ind, ]
