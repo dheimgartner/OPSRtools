@@ -30,9 +30,9 @@ cache <- readRDS("./cache.rds")
 fit <- cache$fit
 fit_10 <- cache$fit_10
 fit_aic <- cache$fit_aic
-kfold <- cache_kfold$kfold
-kfold_10 <- cache_kfold$kfold_10
-kfold_aic <- cache_kfold$kfold_aic
+kfold <- cache$kfold
+kfold_10 <- cache$kfold_10
+kfold_aic <- cache$kfold_aic
 @
 
 %\VignetteIndexEntry{paper title}
@@ -80,7 +80,7 @@ data("timeuse", package = "OPSRtools")
 %
 Using \pkg{OPSR}'s functionality, the model can be estimated by
 %
-<<full-model, results=hide, eval=FALSE>>=
+<<full-model, results=hide>>=
 f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
   log_commute_km + age + dogs + driverlicense + educ_higher + fixed_workplace +
   grocery_shopper + hh_income + hh_size + isco_clerical + isco_craft +
@@ -113,7 +113,7 @@ fit_10 <- opsr_step(fit, pval = 0.1, printLevel = 0)
 summary(fit_10)
 @
 %
-shere \code{printLevel = 0} is passed to \fct{opsr} and avoids printing working information during maximum likelihood estimation.
+where \code{printLevel = 0} is passed to \fct{opsr} and avoids printing working information during maximum likelihood estimation.
 
 While this model (\code{fit\_10}) has considerably fewer parameters than \code{fit}, it is not necessarily the ``best'' model. To more rigorously sparsify the model and carefully evaulate each intermediate model, the function \fct{opsr\_select} can be used
 %
@@ -162,14 +162,18 @@ ll_mean
 %
 The three cross-validation objects can be plotted against each other
 <<kfplot, eval=FALSE>>=
-plot.it <- function() {
+plot.it <- function(...) {
   op <- par(no.readonly = TRUE)
   on.exit(par(op))
-  par(mfrow = c(1, 3))
-  for (i in c("ll_mean", "ll_p_mean", "r2")) {
-    kfplot(list(kfold_10, kfold_aic, kfold), i = i, col = colvec)
-    legend("bottomleft", legend = c("fit_10", "fit_aic", "fit"), bty = "n",
-    fill = colvec)
+  par(mfrow = c(2, 2))
+  par(...)
+  what <- c("ll_mean", "ll_p_mean", "r2")
+  main <- c("Total", "Selection", "Outcome")
+  for (i in seq_along(what)) {
+    kfplot(list(kfold_10, kfold_aic, kfold), i = what[i], col = colvec,
+           main = main[i])
+    legend("bottomleft", legend = c("fit_10", "fit_aic", "fit"), fill = colvec,
+           title = "Model", title.font = 2, bty = "n")
   }
 }
 plot.it()
@@ -180,12 +184,15 @@ where we see (Figure~\ref{fig:kfplot}), that \code{fit\_10} has negligible highe
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}[t!]
 \centering
-<<plot-kfplot, echo=FALSE, fig=TRUE, height=6.5, width=7>>=
+<<plot-kfplot, echo=FALSE, fig=TRUE, height=8, width=7.5>>=
 <<kfplot>>
-plot.it()
 @
 \caption{\label{fig:kfplot} Model comparison by k-fold cross-validation.}
 \end{figure}
+
+\begin{leftbar}
+How can $R^2$ be negative???
+\end{leftbar}
 
 Having selected an appropriate model (say, in the name of Occam's razor \code{fit\_10}) the analyst would like to investigate treatment effects. This can be done by
 %
