@@ -18,3 +18,8 @@ to.signif.codes <- function(pv) {
   x. <- lapply(x, function(x) x[[i]])
   x.
 }
+
+list2df <- function(x) {
+  df <- data.frame(Reduce(rbind, x), row.names = NULL)
+  df
+}

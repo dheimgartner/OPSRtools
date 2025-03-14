@@ -19,6 +19,7 @@
 #' as computed by [`loss`].
 #'
 #' @seealso [`opsr_from_opsr`], [`loss`], [`[.opsr.kfold`]
+#' @example R/examples/ex-opsr_kfold.R
 #' @export
 opsr_kfold <- function(object, k = 10, verbose = TRUE, ...) {
   if (!is(object, "opsr")) stop("'object' has to be of class 'opsr'.")

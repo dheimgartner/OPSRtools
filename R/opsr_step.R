@@ -12,6 +12,7 @@
 #'
 #' @return An object of class `"opsr"`.
 #' @seealso [`opsr_select`]
+#' @example R/examples/ex-opsr_step.R
 #' @export
 opsr_step <- function(object, pval, log = new.env(), .step = 1, ...) {
   partial_match <- function(x, y) {

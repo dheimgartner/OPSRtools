@@ -22,6 +22,7 @@
 #' `"lrt"` for a likelihood ratio test.
 #'
 #' @seealso [`opsr_select`]
+#' @example R/examples/ex-opsr_select.R
 #' @export
 opsr_select <- function(object, pseq = seq(0.9, 0.1, by = -0.1), log = new.env(),
                         verbose = TRUE, loss = c("aic", "bic", "lrt"),

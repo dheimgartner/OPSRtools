@@ -22,11 +22,6 @@ library("OPSR")
 
 colvec <- c("#4c5760","#ff8811","#48a9a6")
 
-list2df <- function(x) {
-  df <- data.frame(Reduce(rbind, x), row.names = NULL)
-  df
-}
-
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
 

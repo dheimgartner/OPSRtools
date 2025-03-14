@@ -31,6 +31,7 @@
 #'
 #' @method pairs opsr.ate
 #' @seealso [`pairs`]
+#' @example R/examples/ex-opsr_ate.R
 #' @export
 pairs.opsr.ate <- function(x, pch = 21, labels.diag = paste0("T", 1:x$nReg),
                            labels.reg = paste0("G", 1:x$nReg), col = 1:x$nReg,

@@ -12,6 +12,7 @@
 #' This function only prepares the input to a further call to [`summary.opsr.ate`].
 #'
 #' @seealso [`summary.opsr.ate`]
+#' @example R/examples/ex-opsr_ate.R
 #' @export
 opsr_ate <- function(object, type, weights = NULL, ...) {
   if (is.null(weights)) {

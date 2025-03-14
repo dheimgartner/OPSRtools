@@ -7,8 +7,8 @@
 #' @return An object of class `"opsr"`
 #' @export
 opsr_from_opsr <- function(object, data, ...) {
-  fit <- opsr(object$formula, data = data, fixed = object$fixed, start = object$start,
-              ...)
+  fit <- OPSR::opsr(object$formula, data = data, fixed = object$fixed, start = object$start,
+                    ...)
   fit
 }
 
