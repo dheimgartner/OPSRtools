@@ -294,7 +294,7 @@ plot.it <- function() {
 
 plot.it()
 @
-\caption{\label{fig:heckman-correction} Plotting the Heckman correction term against the linear predictor. The ratio of the two mean values is printed in red. Scales are shared across the facets.}
+\caption{\label{fig:heckman-correction} Plotting the Heckman correction term against the linear predictor. The ratio of the two mean values is printed at their intersection. Scales are shared across the facets.}
 \end{figure}
 
 \section{Summary}

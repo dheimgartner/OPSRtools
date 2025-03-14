@@ -19,6 +19,14 @@ to.signif.codes <- function(pv) {
   x.
 }
 
+#' List to Data Frame
+#'
+#' Converts a list of vectors to a data frame.
+#'
+#' @param x a list of vectors.
+#'
+#' @returns A data frame.
+#' @export
 list2df <- function(x) {
   df <- data.frame(Reduce(rbind, x), row.names = NULL)
   df
