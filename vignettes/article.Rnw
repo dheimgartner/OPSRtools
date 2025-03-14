@@ -22,6 +22,11 @@ library("OPSR")
 
 colvec <- c("#4c5760","#ff8811","#48a9a6")
 
+list2df <- function(x) {
+  df <- data.frame(Reduce(rbind, x), row.names = NULL)
+  df
+}
+
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
 
@@ -155,9 +160,7 @@ The resulting object of class \class{opsr.kfold} is somewhat nested: It contains
 %
 <<extract>>=
 ll_mean <- kfold["ll_mean"]
-ll_mean <- Reduce(rbind, ll_mean)
-rownames(ll_mean) <- NULL
-ll_mean
+list2df(ll_mean)
 @
 %
 The three cross-validation objects can be plotted against each other
@@ -165,13 +168,13 @@ The three cross-validation objects can be plotted against each other
 plot.it <- function(...) {
   op <- par(no.readonly = TRUE)
   on.exit(par(op))
-  par(mfrow = c(2, 2))
+  par(mfrow = c(1, 3))
   par(...)
   what <- c("ll_mean", "ll_p_mean", "r2")
   main <- c("Total", "Selection", "Outcome")
   for (i in seq_along(what)) {
     kfplot(list(kfold_10, kfold_aic, kfold), i = what[i], col = colvec,
-           main = main[i])
+           main = main[i], xlab = "", las = 2)
     legend("bottomleft", legend = c("fit_10", "fit_aic", "fit"), fill = colvec,
            title = "Model", title.font = 2, bty = "n")
   }
@@ -184,7 +187,7 @@ where we see (Figure~\ref{fig:kfplot}), that \code{fit\_10} has negligible highe
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}[t!]
 \centering
-<<plot-kfplot, echo=FALSE, fig=TRUE, height=8, width=7.5>>=
+<<plot-kfplot, echo=FALSE, fig=TRUE, height=3.5, width=8>>=
 <<kfplot>>
 @
 \caption{\label{fig:kfplot} Model comparison by k-fold cross-validation.}
@@ -235,8 +238,7 @@ Find reference of unstable results Loshkin?
 <<heckman-correction, echo=FALSE, fig=TRUE, height=7.5, width=7>>=
 
 ## TODO
-## add legend and text to the right of legend (similar to pairs)
-## clean code below
+## add text to cross (topright and bottomleft)
 
 heckman_ij <- function(fit, i, j) {
   imr <- predict(fit, type = "mills", group = i, counterfact = j)
@@ -250,6 +252,15 @@ xb_ij <- function(fit, i, j) {
   xb
 }
 
+plot.values <- function(fit, i, j, digits = 3) {
+  h <- heckman_ij(fit, i, j)
+  x <- xb_ij(fit, i, j)
+  mh <- mean(h, na.rm = TRUE)
+  mx <- mean(x, na.rm = TRUE)
+  ratio <- round(mh / mx, digits = digits)
+  list(h = h, x = x, mh = mh, mx = mx, ratio = ratio)
+}
+
 plot.it <- function() {
   op <- par(no.readonly = TRUE)
   on.exit(par(op))
@@ -260,25 +271,23 @@ plot.it <- function() {
 
   for (i in 1:3) {
     for (j in 1:3) {
-      h1 <- heckman_ij(fit_10, i, j)
-      x1 <- xb_ij(fit_10, i, j)
-      h2 <- heckman_ij(fit_aic, i, j)
-      x2 <- xb_ij(fit_aic, i, j)
-      plot(h1, x1, xlim = c(-0.5, 0.5), ylim = c(3, 7),
-           col = scales::alpha(colvec[1], 0.3), pch = 19,
+      pv1 <- plot.values(fit_10, i, j)
+      pv2 <- plot.values(fit_aic, i, j)
+      plot(pv1$h, pv1$x, xlim = c(-0.7, 0.7), ylim = c(3, 7),
            xlab = expression(rho[j]*sigma[j]*IMR), ylab = expression(X*beta),
-           main = paste(group[i], counterfact[j]))
-      points(h2, x2, col = scales::alpha(colvec[2], 0.3), pch = 19)
-      mh1 <- mean(h1, na.rm = TRUE)
-      mx1 <- mean(x1, na.rm = TRUE)
-      mh2 <- mean(h2, na.rm = TRUE)
-      mx2 <- mean(x2, na.rm = TRUE)
-      abline(v = mh1, col = colvec[1], lty = 2, lwd = 2)
-      abline(h = mx1, col = colvec[1], lty = 2, lwd = 2)
-      abline(v = mh2, col = colvec[2], lty = 2, lwd = 2)
-      abline(h = mx2, col = colvec[2], lty = 2, lwd = 2)
-      legend("bottomleft", legend = round(mh1 / mx1, 3), text.col = colvec[1], bty = "n")
-      legend("bottomright", legend = round(mh2 / mx2, 3), text.col = colvec[2], bty = "n")
+           main = paste(group[i], counterfact[j]), type = "n")
+      points(pv1$h, pv1$x, col = scales::alpha(colvec[1], 0.3), pch = 19)
+      points(pv2$h, pv2$x, col = scales::alpha(colvec[2], 0.3), pch = 19)
+      abline(v = pv1$mh, col = colvec[1], lty = 2, lwd = 2)
+      abline(h = pv1$mx, col = colvec[1], lty = 2, lwd = 2)
+      abline(v = pv2$mh, col = colvec[2], lty = 2, lwd = 2)
+      abline(h = pv2$mx, col = colvec[2], lty = 2, lwd = 2)
+      points(x = pv1$mh, y = pv1$mx, pch = 15)
+      points(x = pv2$mh, y = pv2$mx, pch = 15)
+      text(x = pv1$mh, y = pv1$mx, labels = pv1$ratio, adj = c(-0.1, -0.1), font = 2)
+      text(x = pv2$mh, y = pv2$mx, labels = pv2$ratio, adj = c(1.1, 1.1), font = 2)
+      legend("bottomleft", legend = c("fit_10", "fit_aic"), pch = 19,
+             col = colvec[1:2], bty = "n")
     }
   }
 }

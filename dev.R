@@ -69,3 +69,9 @@ pairs(ate, xlim = c(-10, 10), ylim = c(-7, 12))
 
 
 
+
+## text
+plot(x = 1:10, y = 1:10)
+points(2, 6)
+text(2, 6, "topright", adj = c(-0.1, -0.1))
+text(2, 6, "bottomleft", adj = c(1.1, 1.1))
