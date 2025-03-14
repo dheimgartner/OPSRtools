@@ -172,9 +172,10 @@ plot.it <- function(...) {
   par(...)
   what <- c("ll_mean", "ll_p_mean", "r2")
   main <- c("Total", "Selection", "Outcome")
+  ylab <- c("OOS log-likelihood full model", "OOS log-likelihood selection model", expression(paste("OOS ", R^2, "")))
   for (i in seq_along(what)) {
     kfplot(list(kfold_10, kfold_aic, kfold), i = what[i], col = colvec,
-           main = main[i], xlab = "", las = 2)
+           main = main[i], ylab= ylab[i], xlab = "", las = 2)
     legend("bottomleft", legend = c("fit_10", "fit_aic", "fit"), fill = colvec,
            title = "Model", title.font = 2, bty = "n")
   }
@@ -197,14 +198,18 @@ where we see (Figure~\ref{fig:kfplot}), that \code{fit\_10} has negligible highe
 How can $R^2$ be negative???
 \end{leftbar}
 
-Having selected an appropriate model (say, in the name of Occam's razor \code{fit\_10}) the analyst would like to investigate treatment effects. This can be done by
+Having selected an appropriate model (say, in the name of Occam's razor, \code{fit\_10}) the analyst would like to investigate treatment effects. This can be done by
 %
 <<opsr-ate>>=
 ate <- opsr_ate(fit_10, type = "unlog-response")
 print(ate)
 @
 %
-where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled). The significance values are based on a weighted paired t-test (performed via a regression in \fct{summyr.opsr.ate}).
+where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled). The significance values are based on a weighted paired $t$~test (performed via a regression in \fct{summyr.opsr.ate}).
+
+\begin{leftbar}
+Explain the code output, e.g., treatment effects.
+\end{leftbar}
 
 The treatment effects can be visually summarised by a call to \fct{pairs}
 %

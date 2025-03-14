@@ -1,10 +1,14 @@
 Package: OPSRtools
-Title: What the Package Does (One Line, Title Case)
+Title: Tools for OPSR
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Daniel", "Heimgartner", email = "d.heimgartners@gmail.com", role = c("aut", "cre", "cph"),
+    comment = c(ORCID = "0000-0002-0643-8690"))
+Description: OPSR estimates ordered probit switching regression models - a Heckman
+    type endogenous switching regression model with an ordinal selection/treatment 
+    and continuous outcomes. OPSRtools contains estimation and post-estimation 
+    routines such as step-wise model selection, k-fold cross-validation, treatment 
+    effect computations and some visualizations.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

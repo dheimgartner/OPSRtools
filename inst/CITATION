@@ -1,0 +1,13 @@
+citHeader("To cite package 'OPSRtools' in publications use:")
+
+bibentry(
+  bibtype  = "Article",
+  title    = "OPSRtools: Estimation and Post-Estimation Routines for the OPSR Package",
+  author   = "Daniel Heimgartner",
+  journal  = "tbc",
+  year     = "2025",
+  volume   = "",
+  number   = "",
+  pages    = "",
+  doi      = ""
+)
