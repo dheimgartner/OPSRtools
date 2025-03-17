@@ -69,7 +69,7 @@ An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and wha
 
 \section{Illustrations}
 
-Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling telework adoption and weekly kilometers traveled. Telework adoption was differentiated into three ordered segments: no telework (NTW), non-usual telework (NUTW, <3 days/week) and usual telework (UTW, 3+ days/week). The data is attached, documented (\code{?timeuse}) and can be loaded by
+Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling telework adoption and weekly kilometers traveled. Telework adoption was differentiated into three ordered segments: no telework (NTW), non-usual telework (NUTW, <3 days/week) and usual telework (UTW, 3+ days/week). The data, based on the TimeUse+ study \citep{Winkler+Meister+Axhausen:2024}, is attached, documented (\code{?timeuse}) and can be loaded by
 %
 <<data>>=
 data("timeuse", package = "OPSRtools")
@@ -118,7 +118,7 @@ While this model (\fit{10}) has considerably fewer parameters than \code{fit}, i
 fit_aic <- opsr_select(fit, loss = "aic", printLevel = 0)
 @
 %
-where \code{"aic"} specifies that the model selection is based on AIC. Other available options are \code{"bic"} for BIC and \code{"lrt"} for a likelihood ratio test. The above call yields an object of class \class{opsr.select} which can be printed to provide more information about the selection process (and elimination history, which is omitted here for brevity)
+where \code{"aic"} specifies that model selection is based on AIC. Other available options are \code{"bic"} for BIC and \code{"lrt"} for a likelihood ratio test. The above call yields an object of class \class{opsr.select} which can be printed to provide more information about the selection process (and elimination history, which is omitted here for brevity)
 %
 <<print-opsr-select>>=
 print(fit_aic, print.elim.hist = FALSE)
@@ -131,7 +131,7 @@ The final model (after the sixth iteration) has improved AIC by 49 points and wo
 \item Current: ``Loss'' value (here AIC) of the current winner.
 \item Opponent: ``Loss'' value of the model at the current step.
 \item Test: Test-statistic (here AIC difference).
-\item Winner: Selected model with preferred test-statistic (current winner in the next step).
+\item Winner: Selected model based on the test-statistic (current winner in the next step).
 \end{itemize}
 
 The three models can be compared by
@@ -148,7 +148,7 @@ kfold_10 <- opsr_kfold(fit_10, k = 10, verbose = FALSE, printLevel = 0)
 kfold_aic <- opsr_kfold(fit_aic, k = 10, verbose = FALSE, printLevel = 0)
 @
 %
-The resulting object of class \class{opsr.kfold} is a deeply nested list: It contains for each fold different out-of-sample loss computations
+The resulting object of class \class{opsr.kfold} is a nested list: It contains for each fold different out-of-sample loss computations
 
 \begin{itemize}
 \item \code{z}: The regime/treatment membership (here telework status) of the test data.
@@ -198,16 +198,16 @@ In Figure~\ref{fig:kfplot} three OOS losses (for the total model \code{ll\_mean}
 \caption{\label{fig:kfplot} Model comparison by k-fold cross-validation. Note that $R^2$ can be negative for out-of-sample data points.}
 \end{figure}
 
-Having selected an appropriate model (say, in the name of Occam's razor, \fit{10}) the analyst would like to investigate treatment effects. This can be done by
+Having selected an appropriate model (say, in the name of Occam's razor, \fit{10}) the analyst would like to investigate treatment effects (TE). This can be done by
 %
 <<opsr-ate>>=
 ate <- opsr_ate(fit_10, type = "unlog-response")
 print(ate)
 @
 %
-where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled) before estimation. \fct{opsr\_ate} prepares the data returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} then performs the main computation, in particular a weighted paired $t$~test. The method \fct{print.summary.opsr.ate} prints the results (method \fct{print.opsr.ate} redirects to \fct{summary} and a subsequent \fct{print} call).
+where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled) before estimation. \fct{opsr\_ate} prepares the data returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} then performs the main computations, in particular a weighted paired $t$~test for the TE (with the null that TE is equal to 0). The method \fct{print.summary.opsr.ate} prints the results (method \fct{print.opsr.ate} redirects to \fct{summary} and a subsequent \fct{print} call).
 
-Weights are automatically used to compute group-specific treatment effects (TE) and average treatment effects (ATE) if they were used during estimation but can be overridden by passing a new \code{weights} argument to \fct{opsr\_ate}.
+Weights are automatically used to compute group-specific treatment effects and average treatment effects (ATE) if they were used during estimation but can be overridden by passing a new vector as \code{weights} argument to \fct{opsr\_ate}.
 
 Here we see, that all treatment effects are negative except for \code{G1} (the NTWers) when switching from \code{T1->T3} (NTWing to UTWing), \code{T2->T3} (NUTWing to UTWing) and \code{G2} (the NUTWers) when switching from \code{T2->T3} (NUTWing to UTWing). Consequently, resulting ATE are positive for \code{T1->T3} and \code{T2->T3}. All effects are significantly different from 0. However, the test does of course not reflect parameter uncertainty.
 
@@ -217,7 +217,7 @@ The treatment effects can be visually summarised by a call to \fct{pairs}
 pairs(ate)
 @
 %
-Figure~\ref{fig:pairs} presents all potential pairs of regime switching. The diagonal depicts distributions in any given treatment and separate by the current (factual) treatment group. The weighted mean values are shown as red numbers. The lower triangular panels compare the model-implied (predicted) outcomes of two treatment regimes, again separate by current treatment group. The red line indicates the 45-degree line of equal outcomes while the red squares depict the weighted mean values. The upper triangular panels show (weighted) average treatment effects.
+Figure~\ref{fig:pairs} presents all potential pairs of regime switching. The diagonal depicts distributions of model-implied conditional expectations in any given treatment and separate by the current (factual) treatment group. The weighted mean values are shown as red numbers. The lower triangular panels compare the model-implied (predicted) outcomes of two treatment regimes, again separate by current treatment group. The red line indicates the 45-degree line of equal outcomes while the red squares depict the weighted mean values (corresponding to the reported numbers). The upper triangular panels show (weighted) average treatment effects.
 
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}[htbp]
@@ -231,7 +231,9 @@ pairs(ate, labels.diag = c("NTWing", "NUTWing", "UTWing"), col = colvec,
 \caption{\label{fig:pairs} Pairs plot: Comparison of conditional expectations (weekly km traveled) by telework status in the lower panel. Corresponding distributions on the diagonal. Average treatment effects in the upper panel.}
 \end{figure}
 
-At this point, we should highlight, that these results (based on \fit{10}) are very different from the ones presented in \citet{Heimgartner+Axhausen:2025} (based on \fit{aic}), where we found negative TE and ATE only. We now further investigate, why these differences between the two models emerge. The following three hypothesis are scrutinized: 1. The large error correlation ``rho3'' in \fit{10} could inflate (counterfactual) weekly kilometers traveled of the NTWers and NUTWers when adopting NUTWing or UTWing via the Heckman correction term, 2. \fit{10} has fewer explanatory variables than \fit{aic} and therefore $\Xb$ in the two models differ, and, 3. The $\beta$ coefficients are very different (and therefore $\Xb$ in the two models differ).
+\section{Investigating differences in treatment effects}
+
+At this point, we should highlight, that these results (based on \fit{10}) are very different from the ones presented in \citet{Heimgartner+Axhausen:2025} (based on \fit{aic}), where we found negative TE and ATE only. We now further investigate, why these differences between the two models might arise. The following three hypothesis are scrutinized: 1. The large error correlation ``rho3'' in \fit{10} could inflate (counterfactual) weekly kilometers traveled of the NTWers and NUTWers when adopting NUTWing or UTWing via the Heckman correction term, 2. \fit{10} has fewer explanatory variables than \fit{aic} and therefore $\Xb$ in the two models differ, and, 3. The $\beta$ coefficients are very different (and therefore $\Xb$ in the two models differ).
 
 Let us first revisit the conditional expectation of the OPSR model as stated in \citet{Heimgartner+Wang:2025}
 %
@@ -239,7 +241,7 @@ Let us first revisit the conditional expectation of the OPSR model as stated in 
 \E[y_j \mid Z = j] = \underbrace{\Xb}_{{\text{\code{type = "Xb"}}}} - \underbrace{\rho_j\sigma_j \frac{\phi(\kappa_j - \Wg) - \phi(\kappa_{j-1} - \Wg)}{\Phi(\kappa_j - \Wg) - \Phi(\kappa_{j-1} - \Wg)}}_{{\text{\code{type = "correction"}}}},
 \end{equation}
 %
-where $\Xb$ is the linear combination underlying the continuous outcome, $\kappa_j$ and $\kappa_{j-1}$ are the thresholds of the ordered probit model, $\Wg$ the linear combination modeling the latent propensity underlying the selection outcome, $\phi(\cdot)$ and $\Phi(\cdot)$ are the density and cumulative distribution function of the standard normal distribution. The fraction is the ordered probit switching regression model counterpart to the inverse Mills ratio (IMR) term of a binary switching regression model and the leading cause of selection bias. We also see, that higher $\rho_j$ (and/or higher $sigma_j$) ``inflates'' the Heckman correction by scaling this IMR.
+where $\Xb$ is the linear combination underlying the continuous outcome, $\kappa_j$ and $\kappa_{j-1}$ are the thresholds of the ordered probit model, $\Wg$ is the linear combination modeling the latent propensity underlying the selection outcome, $\phi(\cdot)$ and $\Phi(\cdot)$ are the density and cumulative distribution function of the standard normal distribution. The fraction is the ordered probit switching regression model counterpart to the inverse Mills ratio (IMR) term of a binary switching regression model and the leading cause of selection bias. We also see, that higher $\rho_j$ (and/or higher $sigma_j$) ``inflates'' the Heckman correction by scaling this IMR.
 
 Similarly, the ``counterfactual outcome'' reflects the expected outcome under a counterfactual treatment (i.e., for $j' \neq j$) and can be expressed as
 %
@@ -247,7 +249,7 @@ Similarly, the ``counterfactual outcome'' reflects the expected outcome under a 
 \E[y_{j'} \mid Z = j] = \Xbd - \rho_{j'}\sigma_{j'} \frac{\phi(\kappa_j - \Wg) - \phi(\kappa_{j-1} - \Wg)}{\Phi(\kappa_j - \Wg) - \Phi(\kappa_{j-1} - \Wg)}.
 \end{equation}
 %
-\pkg{OPSR}'s \fct{predict} method can return both components by specifying \code{type = "Xb"} respectively \code{type = "correction"}.
+\pkg{OPSR}'s \fct{predict} method can return both components by specifying \code{type = "Xb"} respectively \code{type = "correction"}. Since the dependent variable was log-transformed, the above formulas return the conditional expectation in the logs. The equations for the back-transformed conditional expectations can be found in \citet{Heimgartner+Wang:2025} and are derived in \citet{Wang+Mokhtarian:2024}.
 
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}[htbp]
@@ -365,7 +367,7 @@ plot.it()
 \caption{\label{fig:fixing-rho} The influence of accounting for error correlation on predictions: Plotting the OPSR predictions against the OLS predictions.}
 \end{figure}
 
-Figure~\ref{fig:fixing-rho} compares the OPSR predictions (accounting for self-selection) to the OLS predictions (not accounting for self-selection) for both \fit{10} and \fit{aic}. For example, the first panel (NTWers NTWing) shows, that accounting for self-selection does not influence the prediction results, while panel UTWers NUTWing (row 3, column 2) indicates, that there is a selection bias, underestimating the weekly kilometers traveled of UTWers when NUTWing. Meanwhile, the selection bias is comparable for \fit{10} and \fit{aic}. Interestingly, the two models seem to agree on the selection bias with the exception of NTWers UTWing and NUTWers UTWing (column 3, row 1 and 2), when \fit{10} suddenly suggests a sizable selection bias - considerably underestimating the weekly distance traveled if not accounted for. The treatment effects of the four models are also summarized in Table~\ref{tab:te-comparison}.
+Figure~\ref{fig:fixing-rho} compares the OPSR predictions (accounting for self-selection) to the OLS predictions (not accounting for self-selection) for both \fit{10} and \fit{aic}. For example, the first panel (NTWers NTWing) shows, that accounting for self-selection does not influence the prediction results, while panel UTWers NUTWing (row 3, column 2) indicates, that there is a selection bias, underestimating the weekly kilometers traveled of UTWers when NUTWing. Meanwhile, the selection bias is comparable for \fit{10} and \fit{aic}. Interestingly, the two models seem to agree on the selection bias with the exception of NTWers UTWing and NUTWers UTWing (column 3, row 1 and 2), when \fit{10} suddenly suggests a sizable selection bias - considerably underestimating the weekly distance traveled if not accounted for. The treatment effects of the four models are summarized in Table~\ref{tab:te-comparison} where the reader can confirm, that resulting treatment effects are very different. However, the OLS model \fit{aic\_nocor} (i.e., the model with the specification $\Xb$ as \fit{aic}) agrees with the direction of the treatment effect, despite generally underestimating it. Similarly, \fit{10\_nocor} shows negative TE and ATE and the numbers are similar to \fit{aic\_nocor}. Again, the reversed TE for \fit{10} seem to be the clear exception.
 
 \begin{table}[htbp]
 \centering
@@ -404,7 +406,9 @@ writeLines(mat_tex)
 \caption{\label{tab:te-comparison} Treatment effect comparison. \code{nocor} implies the regular OLS fit with ``rho'' fixed at 0.}
 \end{table}
 
-In conclusion, it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the beta coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables, then the error correlation might have a bigger influence on these estimates. Under (currently unknown) conditions, OPSR estimates might become unstable, suggesting extreme selection bias.
+This evidence suggests, that it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the $\beta$ coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables, then the error correlation might have a bigger influence on these estimates. Under (currently unknown) conditions, OPSR estimates might become unstable, suggesting extreme selection bias.
+
+\section{Summary}
 
 \begin{leftbar}
 \begin{itemize}
@@ -413,19 +417,10 @@ In conclusion, it is not actually the direct influence of the error correlation 
 \end{itemize}
 \end{leftbar}
 
-\section{Summary}
-
-\begin{leftbar}
-This file is only a basic article template. For full details of \emph{The R Journal} style and information on how to prepare your article for submission, see the \href{https://journal.r-project.org/share/author-guide.pdf}{Instructions for Authors}.
-\end{leftbar}
-
 \section*{Computational details}
 
 The results in this paper were obtained using
-\proglang{R}~\Sexpr{paste(R.Version()[6:7], collapse = ".")} \citep{R} with the packages \pkg{OPSR}~\Sexpr{packageVersion("OPSR")} and ... \proglang{R} itself
-and all packages used are available from the Comprehensive
-\proglang{R} Archive Network (CRAN) at
-\url{https://CRAN.R-project.org/}.
+\proglang{R}~\Sexpr{paste(R.Version()[6:7], collapse = ".")} \citep{R} with the packages \pkg{OPSR}~\Sexpr{packageVersion("OPSR")} and \pkg{OPSRtools}~\Sexpr{packageVersion("OPSRtools")}. \proglang{R} itself and all packages used are available from the Comprehensive \proglang{R} Archive Network (CRAN) at \url{https://CRAN.R-project.org/}.
 
 \bibliography{RJreferences}
 
