@@ -11,7 +11,7 @@
 #' @return A list containing the losses:
 #' * `z`: The regime/treatment membership of the test data.
 #' * `ll`: The out-of-sample log-likelihood of the test data.
-#' * `ll_mean`: `ll`averaged over each regime and in total.
+#' * `ll_mean`: `ll` averaged over each regime and in total.
 #' * `ll_p`: The out-of-sample log-likelihood of the test data for the selection
 #'   process.
 #' * `ll_p_mean`: `ll_p` averaged over each regime and in total.

@@ -15,6 +15,11 @@
 \newcommand{\class}[1]{`\code{#1}'}
 \newcommand{\fct}[1]{\code{#1()}}
 
+\newcommand{\fit}[1]{\code{fit\_#1}}
+\newcommand{\Xb}{\boldsymbol{X_j}\boldsymbol{\beta_j}}
+\newcommand{\Xbd}{\boldsymbol{X_{j'}}\boldsymbol{\beta_{j'}}}
+\newcommand{\Wg}{\boldsymbol{W}\boldsymbol{\gamma}}
+
 \SweaveOpts{engine=R, eps=FALSE, keep.source = TRUE}
 <<preliminaries, echo=FALSE, results=hide>>=
 library("OPSRtools")
@@ -64,15 +69,7 @@ An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and wha
 
 \section{Illustrations}
 
-\begin{leftbar}
-\begin{itemize}
-\item Write about weighted paired $t$~test.
-\item Write about weights being automatically used (e.g., in \fct{opsr\_ate})
-\item \fct{opsr\_ate} prepares the data returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} performs main computations on this data, in particular weighted paired $t$~test. \fct{print.summary.opsr.ate} presents the results.
-\end{itemize}
-\end{leftbar}
-
-Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling telework adoption and weekly kilometers traveled. Telework adoption was differentiated into three segments: no telework (NTW), non-usual telework (NUTW, <3 days/week) and usual telework (UTW, 3+ days/week). The data is attached, documented (\code{?timeuse}) and can be loaded by
+Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling telework adoption and weekly kilometers traveled. Telework adoption was differentiated into three ordered segments: no telework (NTW), non-usual telework (NUTW, <3 days/week) and usual telework (UTW, 3+ days/week). The data is attached, documented (\code{?timeuse}) and can be loaded by
 %
 <<data>>=
 data("timeuse", package = "OPSRtools")
@@ -106,16 +103,16 @@ f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
 fit <- opsr(f, data = timeuse, weights = timeuse$weight)
 @
 %
-This model is likely to be over-specified and as a usual first step, the analyst starts by excluding insignificant variables (below some threshold). Given the above formula object with many terms/variables, this process can be tedious or even error prone - boring at best. The function \fct{opsr\_step} allows the modeler to do this automatically. For example, excluding all variables which are not significant at the 10\% level
+This model is likely to be over-specified and as a usual first step, the analyst starts by excluding insignificant variables (above some $p$~value threshold). Given the above formula object with many terms/variables, this process can be tedious or even error prone - boring at best. The function \fct{opsr\_step} allows the modeler to do this automatically. For example, excluding all variables which are not significant at the 10\% level
 %
 <<opsr-step>>=
 fit_10 <- opsr_step(fit, pval = 0.1, printLevel = 0)
 summary(fit_10)
 @
 %
-where \code{printLevel = 0} is passed to \fct{opsr} and avoids printing working information during maximum likelihood estimation.
+where \code{printLevel = 0} is passed to \fct{opsr} and avoids printing working information during maximum likelihood estimation. \fct{opsr\_step} is aware of factor variables and keeps the factor if one corresponding coefficient is below the selected \code{pval}.
 
-While this model (\code{fit\_10}) has considerably fewer parameters than \code{fit}, it is not necessarily the ``best'' model. To more rigorously sparsify the model and carefully evaulate each intermediate model, the function \fct{opsr\_select} can be used
+While this model (\fit{10}) has considerably fewer parameters than \code{fit}, it is not necessarily the ``best'' model. To more rigorously sparsify the model and carefully evaluate each intermediate model, the function \fct{opsr\_select} can be used
 %
 <<opsr-select, eval=FALSE>>=
 fit_aic <- opsr_select(fit, loss = "aic", printLevel = 0)
@@ -127,7 +124,15 @@ where \code{"aic"} specifies that the model selection is based on AIC. Other ava
 print(fit_aic, print.elim.hist = FALSE)
 @
 %
-where we see, that the final model (after the sixth iteration) has improved AIC by 49 points.
+The final model (after the sixth iteration) has improved AIC by 49 points and would be preferred over \fit{10}. The model comparison table reads as follows
+%
+\begin{itemize}
+\item Current winner: The currently best performing model.
+\item Current: ``Loss'' value (here AIC) of the current winner.
+\item Opponent: ``Loss'' value of the model at the current step.
+\item Test: Test-statistic (here AIC difference).
+\item Winner: Selected model with preferred test-statistic (current winner in the next step).
+\end{itemize}
 
 The three models can be compared by
 %
@@ -135,20 +140,23 @@ The three models can be compared by
 print(anova(fit_10, fit_aic, fit), print.formula = FALSE)
 @
 %
-where the likelihood ratio test would select the full model. However, the full model is likely over-fitting the data (in particular for the usual teleworkers, UTWers). To further investigate the out-of-sample performance, k-fold cross-validation can be performed
+where the likelihood ratio test would select the full model. However, the full model is potentially over-fitting the data (in particular for the usual teleworkers, UTWers). To further investigate the out-of-sample (OOS) performance, k-fold cross-validation can be performed
 %
 <<opsr-kfold, eval=FALSE>>=
-## TODO
-## remove cache again on final run
-kfold <- opsr_kfold(fit, k = 10, printLevel = 0)
+kfold <- opsr_kfold(fit, k = 10, verbose = FALSE, printLevel = 0)
 kfold_10 <- opsr_kfold(fit_10, k = 10, verbose = FALSE, printLevel = 0)
 kfold_aic <- opsr_kfold(fit_aic, k = 10, verbose = FALSE, printLevel = 0)
 @
 %
-The resulting object of class \class{opsr.kfold} is somewhat nested: It contains for each fold different out-of-sample loss computations
+The resulting object of class \class{opsr.kfold} is a deeply nested list: It contains for each fold different out-of-sample loss computations
 
 \begin{itemize}
-\item \code{z}:
+\item \code{z}: The regime/treatment membership (here telework status) of the test data.
+\item \code{ll}: The OOS log-likelihood.
+\item \code{ll\_mean}: \code{ll} averaged over each regime and in total.
+\item \code{ll\_p}: The OOS log-likelihood for the selection process (ordered probit model).
+\item \code{ll\_p\_mean}: \code{ll\_p} averaged over each regime and in total.
+\item \code{r2}: The OOS coefficient of determination ($R^2$) for each regime and in total.
 \end{itemize}
 
 \pkg{OPSRtools} provides an extract method to collect the desired information
@@ -167,7 +175,8 @@ plot.it <- function(...) {
   par(...)
   what <- c("ll_mean", "ll_p_mean", "r2")
   main <- c("Total", "Selection", "Outcome")
-  ylab <- c("OOS log-likelihood full model", "OOS log-likelihood selection model", expression(paste("OOS ", R^2, "")))
+  ylab <- c("OOS log-likelihood full model", "OOS log-likelihood selection model",
+            expression(paste("OOS ", R^2, "")))
   for (i in seq_along(what)) {
     kfplot(list(kfold_10, kfold_aic, kfold), i = what[i], col = colvec,
            main = main[i], ylab= ylab[i], xlab = "", las = 2)
@@ -178,33 +187,29 @@ plot.it <- function(...) {
 plot.it()
 @
 %
-where we see (Figure~\ref{fig:kfplot}), that \code{fit\_10} has negligible higher $R^2$ values for the UTWers but generally performs slightly worse than the other two models.
+In Figure~\ref{fig:kfplot} three OOS losses (for the total model \code{ll\_mean}, the selection \code{ll\_p\_mean} and the continuous outcome \code{r2}) are presented: \fit{10} has negligible higher $R^2$ values for the UTWers but generally performs slightly worse than the other two models.
 
 \setkeys{Gin}{width=\textwidth}
-\begin{figure}[t!]
+\begin{figure}[htbp]
 \centering
 <<plot-kfplot, echo=FALSE, fig=TRUE, height=3.5, width=8>>=
 <<kfplot>>
 @
-\caption{\label{fig:kfplot} Model comparison by k-fold cross-validation.}
+\caption{\label{fig:kfplot} Model comparison by k-fold cross-validation. Note that $R^2$ can be negative for out-of-sample data points.}
 \end{figure}
 
-\begin{leftbar}
-How can $R^2$ be negative???
-\end{leftbar}
-
-Having selected an appropriate model (say, in the name of Occam's razor, \code{fit\_10}) the analyst would like to investigate treatment effects. This can be done by
+Having selected an appropriate model (say, in the name of Occam's razor, \fit{10}) the analyst would like to investigate treatment effects. This can be done by
 %
 <<opsr-ate>>=
 ate <- opsr_ate(fit_10, type = "unlog-response")
 print(ate)
 @
 %
-where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled). The significance values are based on a weighted paired $t$~test (performed via a regression in \fct{summyr.opsr.ate}).
+where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled) before estimation. \fct{opsr\_ate} prepares the data returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} then performs the main computation, in particular a weighted paired $t$~test. The method \fct{print.summary.opsr.ate} prints the results (method \fct{print.opsr.ate} redirects to \fct{summary} and a subsequent \fct{print} call).
 
-\begin{leftbar}
-Explain the code output, e.g., treatment effects.
-\end{leftbar}
+Weights are automatically used to compute group-specific treatment effects (TE) and average treatment effects (ATE) if they were used during estimation but can be overridden by passing a new \code{weights} argument to \fct{opsr\_ate}.
+
+Here we see, that all treatment effects are negative except for \code{G1} (the NTWers) when switching from \code{T1->T3} (NTWing to UTWing), \code{T2->T3} (NUTWing to UTWing) and \code{G2} (the NUTWers) when switching from \code{T2->T3} (NUTWing to UTWing). Consequently, resulting ATE are positive for \code{T1->T3} and \code{T2->T3}. All effects are significantly different from 0. However, the test does of course not reflect parameter uncertainty.
 
 The treatment effects can be visually summarised by a call to \fct{pairs}
 %
@@ -212,10 +217,10 @@ The treatment effects can be visually summarised by a call to \fct{pairs}
 pairs(ate)
 @
 %
-Figure~\ref{fig:pairs} presents all potential counterfactual outcomes. The diagonal depicts distributions in any given treatment regime and separate by the current (factual) treatment group. The weighted mean values are shown as red numbers. The lower triangular panels compare the model-implied (predicted) outcomes of two treatment regimes again separate by current treatment group. The red line indicates the 45-degree line of equal outcomes while the red squares depict again the weighted mean values. The upper triangular panels show (weighted) average treatment effects.
+Figure~\ref{fig:pairs} presents all potential pairs of regime switching. The diagonal depicts distributions in any given treatment and separate by the current (factual) treatment group. The weighted mean values are shown as red numbers. The lower triangular panels compare the model-implied (predicted) outcomes of two treatment regimes, again separate by current treatment group. The red line indicates the 45-degree line of equal outcomes while the red squares depict the weighted mean values. The upper triangular panels show (weighted) average treatment effects.
 
 \setkeys{Gin}{width=\textwidth}
-\begin{figure}[t!]
+\begin{figure}[htbp]
 \centering
 <<plot-pairs, echo=FALSE, fig=TRUE, height=7.5, width=7.5>>=
 pairs(ate, labels.diag = c("NTWing", "NUTWing", "UTWing"), col = colvec,
@@ -226,25 +231,31 @@ pairs(ate, labels.diag = c("NTWing", "NUTWing", "UTWing"), col = colvec,
 \caption{\label{fig:pairs} Pairs plot: Comparison of conditional expectations (weekly km traveled) by telework status in the lower panel. Corresponding distributions on the diagonal. Average treatment effects in the upper panel.}
 \end{figure}
 
-We clearly see, that the large error correlation ``rho3'' inflates (counterfactual) weekly kilometers traveled of the NTWers and NUTWers when adopting UTWing.
+At this point, we should highlight, that these results (based on \fit{10}) are very different from the ones presented in \citet{Heimgartner+Axhausen:2025} (based on \fit{aic}), where we found negative TE and ATE only. We now further investigate, why these differences between the two models emerge. The following three hypothesis are scrutinized: 1. The large error correlation ``rho3'' in \fit{10} could inflate (counterfactual) weekly kilometers traveled of the NTWers and NUTWers when adopting NUTWing or UTWing via the Heckman correction term, 2. \fit{10} has fewer explanatory variables than \fit{aic} and therefore $\Xb$ in the two models differ, and, 3. The $\beta$ coefficients are very different (and therefore $\Xb$ in the two models differ).
 
-\begin{leftbar}
-Find reference of unstable results Loshkin?
-\end{leftbar}
+Let us first revisit the conditional expectation of the OPSR model as stated in \citet{Heimgartner+Wang:2025}
+%
+\begin{equation} \label{eq:cond-exp}
+\E[y_j \mid Z = j] = \underbrace{\Xb}_{{\text{\code{type = "Xb"}}}} - \underbrace{\rho_j\sigma_j \frac{\phi(\kappa_j - \Wg) - \phi(\kappa_{j-1} - \Wg)}{\Phi(\kappa_j - \Wg) - \Phi(\kappa_{j-1} - \Wg)}}_{{\text{\code{type = "correction"}}}},
+\end{equation}
+%
+where $\Xb$ is the linear combination underlying the continuous outcome, $\kappa_j$ and $\kappa_{j-1}$ are the thresholds of the ordered probit model, $\Wg$ the linear combination modeling the latent propensity underlying the selection outcome, $\phi(\cdot)$ and $\Phi(\cdot)$ are the density and cumulative distribution function of the standard normal distribution. The fraction is the ordered probit switching regression model counterpart to the inverse Mills ratio (IMR) term of a binary switching regression model and the leading cause of selection bias. We also see, that higher $\rho_j$ (and/or higher $sigma_j$) ``inflates'' the Heckman correction by scaling this IMR.
+
+Similarly, the ``counterfactual outcome'' reflects the expected outcome under a counterfactual treatment (i.e., for $j' \neq j$) and can be expressed as
+%
+\begin{equation} \label{eq:counterfact-exp}
+\E[y_{j'} \mid Z = j] = \Xbd - \rho_{j'}\sigma_{j'} \frac{\phi(\kappa_j - \Wg) - \phi(\kappa_{j-1} - \Wg)}{\Phi(\kappa_j - \Wg) - \Phi(\kappa_{j-1} - \Wg)}.
+\end{equation}
+%
+\pkg{OPSR}'s \fct{predict} method can return both components by specifying \code{type = "Xb"} respectively \code{type = "correction"}.
 
 \setkeys{Gin}{width=\textwidth}
-\begin{figure}[t!]
+\begin{figure}[htbp]
 \centering
 <<heckman-correction, echo=FALSE, fig=TRUE, height=7.5, width=7>>=
-
-## TODO
-## add text to cross (topright and bottomleft)
-
 heckman_ij <- function(fit, i, j) {
-  imr <- predict(fit, type = "mills", group = i, counterfact = j)
-  rho_j <- coef(fit)[[paste0("rho", j)]]
-  sigma_j <- coef(fit)[[paste0("sigma", j)]]
-  rho_j * sigma_j * imr
+  correction <- predict(fit, type = "correction", group = i, counterfact = j)
+  correction
 }
 
 xb_ij <- function(fit, i, j) {
@@ -261,7 +272,7 @@ plot.values <- function(fit, i, j, digits = 3) {
   list(h = h, x = x, mh = mh, mx = mx, ratio = ratio)
 }
 
-plot.it <- function() {
+plot.it <- function(fit1, fit2) {
   op <- par(no.readonly = TRUE)
   on.exit(par(op))
   par(mfrow = c(3, 3))
@@ -271,8 +282,8 @@ plot.it <- function() {
 
   for (i in 1:3) {
     for (j in 1:3) {
-      pv1 <- plot.values(fit_10, i, j)
-      pv2 <- plot.values(fit_aic, i, j)
+      pv1 <- plot.values(fit1, i, j)
+      pv2 <- plot.values(fit2, i, j)
       plot(pv1$h, pv1$x, xlim = c(-0.7, 0.7), ylim = c(3, 7),
            xlab = expression(rho[j]*sigma[j]*IMR), ylab = expression(X*beta),
            main = paste(group[i], counterfact[j]), type = "n")
@@ -286,16 +297,46 @@ plot.it <- function() {
       points(x = pv2$mh, y = pv2$mx, pch = 15)
       text(x = pv1$mh, y = pv1$mx, labels = pv1$ratio, adj = c(-0.1, -0.1), font = 2)
       text(x = pv2$mh, y = pv2$mx, labels = pv2$ratio, adj = c(1.1, 1.1), font = 2)
-      legend("bottomleft", legend = c("fit_10", "fit_aic"), pch = 19,
+      legend("bottomleft", legend = c(substitute(fit1), substitute(fit2)), pch = 19,
              col = colvec[1:2], bty = "n")
     }
   }
 }
 
-plot.it()
+plot.it(fit_10, fit_aic)
 @
 \caption{\label{fig:heckman-correction} Plotting the Heckman correction term against the linear predictor. The ratio of the two mean values is printed at their intersection. Scales are shared across the facets.}
 \end{figure}
+
+In Figure~\ref{fig:heckman-correction} we plot the Heckman correction term against the linear predictor $\Xb$ respectively $\Xbd$. The ratio of the two mean values is printed at their intersection. We see, that 1. the correction term is small compared to $\Xb$ and 2. prediction differences (between \fit{aic} and \fit{10}) are because of differences in $\Xb$: In the last column, the horizontal dashed lines corresponding to \fit{10} are above the ones of \fit{aic} and in particular above the level of the lines in column one and two which yields the positive treatment effects oberseved in Figure~\ref{fig:pairs}.
+
+The main motivation of OPSR is to correct for biased parameter estimates. We therefore compare the predictions of conventional regression models (i.e., fixing the ``rho'' coefficients at 0 during estimation) to the OPSR models.
+
+<<fixing-rho>>=
+start <- coef(fit_aic)
+fixed <- c("rho1", "rho2", "rho3")
+start[fixed] <- 0
+
+fit_aic_nocor <- opsr(fit_aic$formula, timeuse, weights = timeuse$weights,
+  start = start, fixed = fixed)
+
+start <- coef(fit_aic)
+fixed <- c("rho1", "rho2", "rho3")
+start[fixed] <- 0
+
+fit_aic_nocor <- opsr(fit_aic$formula, timeuse, weights = timeuse$weights,
+  start = start, fixed = fixed)
+@
+
+
+In conclusion, it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the beta coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables then the error correlation might have a bigger influence on these estimates.
+
+\begin{leftbar}
+\begin{itemize}
+\item Would be nice to have some minimal discussion on stability concerns and give an outlook for future research.
+\item Find reference of unstable results Loshkin?
+\end{itemize}
+\end{leftbar}
 
 \section{Summary}
 

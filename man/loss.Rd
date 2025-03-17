@@ -21,7 +21,7 @@ A list containing the losses:
 \itemize{
 \item \code{z}: The regime/treatment membership of the test data.
 \item \code{ll}: The out-of-sample log-likelihood of the test data.
-\item \code{ll_mean}: \code{ll}averaged over each regime and in total.
+\item \code{ll_mean}: \code{ll} averaged over each regime and in total.
 \item \code{ll_p}: The out-of-sample log-likelihood of the test data for the selection
 process.
 \item \code{ll_p_mean}: \code{ll_p} averaged over each regime and in total.
