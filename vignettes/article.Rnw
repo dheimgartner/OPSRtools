@@ -224,9 +224,9 @@ Figure~\ref{fig:pairs} presents all potential pairs of regime switching. The dia
 \centering
 <<plot-pairs, echo=FALSE, fig=TRUE, height=7.5, width=7.5>>=
 pairs(ate, labels.diag = c("NTWing", "NUTWing", "UTWing"), col = colvec,
-  labels.reg = c("NTWers", "NUTWers", "UTWers"), cex = 1.75, cex.labels = 2,
-  font.labels = 2,lwd.dens = 2.5, lty.diag = 4, xlim = c(0, 1000),
-  ylim = c(0, 1000))
+      labels.reg = c("NTWers", "NUTWers", "UTWers"), cex = 1.75, cex.labels = 2,
+      font.labels = 2,lwd.dens = 2.5, lty.diag = 4, xlim = c(0, 1000),
+      ylim = c(0, 1000))
 @
 \caption{\label{fig:pairs} Pairs plot: Comparison of conditional expectations (weekly km traveled) by telework status in the lower panel. Corresponding distributions on the diagonal. Average treatment effects in the upper panel.}
 \end{figure}
@@ -298,7 +298,7 @@ plot.it <- function(fit1, fit2) {
       text(x = pv1$mh, y = pv1$mx, labels = pv1$ratio, adj = c(-0.1, -0.1), font = 2)
       text(x = pv2$mh, y = pv2$mx, labels = pv2$ratio, adj = c(1.1, 1.1), font = 2)
       legend("bottomleft", legend = c(substitute(fit1), substitute(fit2)), pch = 19,
-             col = colvec[1:2], bty = "n")
+             col = colvec[c(1, 2)], bty = "n")
     }
   }
 }
@@ -312,24 +312,99 @@ In Figure~\ref{fig:heckman-correction} we plot the Heckman correction term again
 
 The main motivation of OPSR is to correct for biased parameter estimates. We therefore compare the predictions of conventional regression models (i.e., fixing the ``rho'' coefficients at 0 during estimation) to the OPSR models.
 
-<<fixing-rho>>=
+\setkeys{Gin}{width=\textwidth}
+\begin{figure}[htbp]
+\centering
+<<fixing-rho, echo=FALSE, fig=TRUE, height=7.5, width=7>>=
 start <- coef(fit_aic)
 fixed <- c("rho1", "rho2", "rho3")
 start[fixed] <- 0
 
-fit_aic_nocor <- opsr(fit_aic$formula, timeuse, weights = timeuse$weights,
-  start = start, fixed = fixed)
+fit_aic_nocor <- opsr(fit_aic$formula, timeuse, weights = timeuse$weight,
+                      start = start, fixed = fixed, printLevel = 0)
 
-start <- coef(fit_aic)
+start <- coef(fit_10)
 fixed <- c("rho1", "rho2", "rho3")
 start[fixed] <- 0
 
-fit_aic_nocor <- opsr(fit_aic$formula, timeuse, weights = timeuse$weights,
-  start = start, fixed = fixed)
+fit_10_nocor <- opsr(fit_10$formula, timeuse, weights = timeuse$weight,
+                     start = start, fixed = fixed, printLevel = 0)
+
+plot.values <- function(fit, i, j) {
+  p <- predict(fit, group = i, counterfact = j, type = "unlog-response")
+}
+
+plot.it <- function() {
+  op <- par(no.readonly = TRUE)
+  on.exit(par(op))
+  par(mfrow = c(3, 3))
+
+  group <- c("NTWers", "NUTWers", "UTWers")
+  counterfact <- c("NTWing", "NUTWing", "UTWing")
+
+  for (i in 1:3) {
+    for (j in 1:3) {
+      x1 <- plot.values(fit_10, i, j)
+      y1 <- plot.values(fit_10_nocor, i, j)
+      x2 <- plot.values(fit_aic, i, j)
+      y2 <- plot.values(fit_aic_nocor, i, j)
+      plot(x1, y1, xlim = c(0, 800), ylim = c(0, 800),
+           xlab = "Prediction (OPSR)", ylab = "Prediction (OLS)",
+           main = paste(group[i], counterfact[j]), type = "n")
+      points(x1, y1, col = scales::alpha(colvec[1], 0.3), pch = 19)
+      points(x2, y2, col = scales::alpha(colvec[2], 0.3), pch = 19)
+      abline(a = 0, b = 1, col = "red", lwd = 2, lty = 4)
+      legend("bottomright", legend = c("fit_10", "fit_aic"), pch = 19,
+             col = colvec[c(1, 2)], bty = "n")
+    }
+  }
+}
+
+plot.it()
 @
+\caption{\label{fig:fixing-rho} The influence of accounting for error correlation on predictions: Plotting the OPSR predictions against the OLS predictions.}
+\end{figure}
 
+Figure~\ref{fig:fixing-rho} compares the OPSR predictions (accounting for self-selection) to the OLS predictions (not accounting for self-selection) for both \fit{10} and \fit{aic}. For example, the first panel (NTWers NTWing) shows, that accounting for self-selection does not influence the prediction results, while panel UTWers NUTWing (row 3, column 2) indicates, that there is a selection bias, underestimating the weekly kilometers traveled of UTWers when NUTWing. Meanwhile, the selection bias is comparable for \fit{10} and \fit{aic}. Interestingly, the two models seem to agree on the selection bias with the exception of NTWers UTWing and NUTWers UTWing (column 3, row 1 and 2), when \fit{10} suddenly suggests a sizable selection bias - considerably underestimating the weekly distance traveled if not accounted for. The treatment effects of the four models are also summarized in Table~\ref{tab:te-comparison}.
 
-In conclusion, it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the beta coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables then the error correlation might have a bigger influence on these estimates.
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|l|l|rrr|r|}
+\hline
+Model & Regime switch & NTWers & NUTWers & UTWers & ATE \\
+\hline
+<<te-comparison, echo=FALSE, results=tex>>=
+te_table <- function(fit) {
+  ate <- opsr_ate(fit, type = "unlog-response")
+  sry_ate <- summary(ate)
+  te <- cbind(sry_ate$te, ATE = sry_ate$ate)
+  te
+}
+
+models <- list(fit_aic, fit_aic_nocor, fit_10, fit_10_nocor)
+te <- format(Reduce(rbind, lapply(models, te_table)), digits = 5)
+from_to <- c("NTWing$\\rightarrow$NUTWing",
+             "NTWing$\\rightarrow$UTWing",
+             "NUTWing$\\rightarrow$UTWing")
+space <- rep("", 2)
+mat <- cbind(
+  c("\\code{fit\\_aic}", space,
+    "\\code{fit\\_aic\\_nocor}", space,
+    "\\code{fit\\_10}", space,
+    "\\code{fit\\_10\\_nocor}", space),
+  c(rep(from_to, 4)),
+  te
+)
+mat_tex <- paste0(apply(mat, 1, paste, collapse = " & "), "\\\\")
+mat_tex[c(3, 6, 9)] <- paste(mat_tex[c(3, 6, 9)], "\\hline")
+writeLines(mat_tex)
+@
+\hline
+\end{tabular}
+\caption{\label{tab:te-comparison} Treatment effect comparison. \code{nocor} implies the regular OLS fit with ``rho'' fixed at 0.}
+\end{table}
+
+In conclusion, it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the beta coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables, then the error correlation might have a bigger influence on these estimates. Under (currently unknown) conditions, OPSR estimates might become unstable, suggesting extreme selection bias.
 
 \begin{leftbar}
 \begin{itemize}
@@ -355,13 +430,13 @@ and all packages used are available from the Comprehensive
 \bibliography{RJreferences}
 
 \address{Daniel Heimgartner\\
-  Institute for Transport Planning and Systems\\
-  Eidgen\"ossische Technische Hochschule Z\"urich\\
-  IFW C 46.1\\
-  Haldeneggsteig 4\\
-  8092 Z\"urich, Switzerland\\
-  \orcidlink{0000-0002-0643-8690} 0000-0002-0643-8690\\
-  \email{daniel.heimgartner@ivt.baug.ethz.ch}}
+Institute for Transport Planning and Systems\\
+Eidgen\"ossische Technische Hochschule Z\"urich\\
+IFW C 46.1\\
+Haldeneggsteig 4\\
+8092 Z\"urich, Switzerland\\
+\orcidlink{0000-0002-0643-8690} 0000-0002-0643-8690\\
+\email{daniel.heimgartner@ivt.baug.ethz.ch}}
 
 \end{article}
 
