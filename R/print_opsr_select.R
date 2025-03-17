@@ -26,7 +26,8 @@ print.opsr.select <- function(x, digits = max(3L, getOption("digits") - 3L),
     df <- lapply(loss_res, as.data.frame)
     df <- Reduce(rbind, df)
     df$winner_hist <- as.character(x$opsr.select$winner_hist)
-    colnames(df) <- c("Current", "Opponent", "Test", "Winner", "Current winner")
+    df <- df[c("winner_hist", "model.1", "model.2", "test", "winner")]
+    colnames(df) <- c("Current winner", "Current", "Opponent", "Test", "Winner")
     format.data.frame(df, digits = digits, ...)
   }
 
