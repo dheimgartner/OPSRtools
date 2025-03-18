@@ -1,5 +1,5 @@
 test_that("runs without error and drops some terms", {
-  sim_dat <- OPSR::opsr_simulate()
+  sim_dat <- load_sim_dat()
   dat <- sim_dat$data
   dat$xo3 <- runif(n = nrow(dat))
   dat$xo4 <- factor(sample(c("level1", "leve2", "level3"), nrow(dat), replace = TRUE))

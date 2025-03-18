@@ -1,5 +1,5 @@
 test_that("runs without error and can be printed", {
-  sim_dat <- OPSR::opsr_simulate()
+  sim_dat <- load_sim_dat()
   dat <- sim_dat$data
   fit <- OPSR::opsr(ys | yo ~ xs1 + xs2 | xo1 + xo2, dat, printLevel = 0)
   ate <- opsr_ate(fit, type = "response")
@@ -8,7 +8,7 @@ test_that("runs without error and can be printed", {
 })
 
 test_that("runs with weights and produces different results", {
-  sim_dat <- OPSR::opsr_simulate()
+  sim_dat <- load_sim_dat()
   dat <- sim_dat$data
   weights <- runif(nrow(dat))
   fit <- OPSR::opsr(ys | yo ~ xs1 + xs2 | xo1 + xo2, dat, printLevel = 0)
@@ -21,7 +21,7 @@ test_that("runs with weights and produces different results", {
 })
 
 test_that("can pass weights which then produces different results", {
-  sim_dat <- OPSR::opsr_simulate()
+  sim_dat <- load_sim_dat()
   dat <- sim_dat$data
   weights <- runif(nrow(dat))
   fit_w <- OPSR::opsr(ys | yo ~ xs1 + xs2 | xo1 + xo2, dat, weights = weights, printLevel = 0)
