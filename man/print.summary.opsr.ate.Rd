@@ -12,6 +12,8 @@
 \item{digits}{minimum number of significant digits to be used for most numbers (passed to \code{\link[stats:printCoefmat]{stats::printCoefmat}}).}
 
 \item{print.call}{if \code{TRUE}, prints the underlying call.}
+
+\item{...}{further arguments passed to or from other methods.}
 }
 \value{
 Prints \code{x} in 'pretty' form and returns it invisibly.

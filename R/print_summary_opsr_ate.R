@@ -3,6 +3,7 @@
 #' @param x an object of class `"summary.opsr.ate"`.
 #' @param digits minimum number of significant digits to be used for most numbers (passed to [`stats::printCoefmat`]).
 #' @param print.call if `TRUE`, prints the underlying call.
+#' @param ... further arguments passed to or from other methods.
 #'
 #' @return Prints `x` in 'pretty' form and returns it invisibly.
 #'

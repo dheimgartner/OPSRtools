@@ -26,6 +26,8 @@ library("OPSRtools")
 library("OPSR")
 
 colvec <- c("#4c5760","#ff8811","#48a9a6")
+# scales::alpha(colvec, 0.3)
+colvec_alpha <- c("#4C57604C", "#FF88114C", "#48A9A64C")
 
 options(prompt = "R> ", continue = "+  ", width = 70, useFancyQuotes = FALSE)
 @
@@ -41,8 +43,8 @@ kfold_aic <- cache$kfold_aic
 @
 
 %\VignetteIndexEntry{paper title}
-%\VignetteDepends{packages (usually the ones you load with library() here)}
-%\VignetteKeywords{keywords}
+%\VignetteDepends{OPSRtools,OPSR}
+%\VignetteKeywords{ordered probit switching regression, selection bias, identification, treatment effect, R}
 %\VignettePackage{OPSRtools}
 
 \begin{document}
@@ -298,8 +300,8 @@ plot.it <- function(fit1, fit2) {
       plot(pv1$h, pv1$x, xlim = c(-0.7, 0.7), ylim = c(3, 7),
            xlab = expression(rho[j]*sigma[j]*IMR), ylab = expression(X*beta),
            main = paste(group[i], counterfact[j]), type = "n")
-      points(pv1$h, pv1$x, col = scales::alpha(colvec[1], 0.3), pch = 19)
-      points(pv2$h, pv2$x, col = scales::alpha(colvec[2], 0.3), pch = 19)
+      points(pv1$h, pv1$x, col = colvec_alpha[1], pch = 19)
+      points(pv2$h, pv2$x, col = colvec_alpha[2], pch = 19)
       abline(v = pv1$mh, col = colvec[1], lty = 2, lwd = 2)
       abline(h = pv1$mx, col = colvec[1], lty = 2, lwd = 2)
       abline(v = pv2$mh, col = colvec[2], lty = 2, lwd = 2)
@@ -362,8 +364,8 @@ plot.it <- function() {
       plot(x1, y1, xlim = c(0, 800), ylim = c(0, 800),
            xlab = "Prediction (OPSR)", ylab = "Prediction (OLS)",
            main = paste(group[i], counterfact[j]), type = "n")
-      points(x1, y1, col = scales::alpha(colvec[1], 0.3), pch = 19)
-      points(x2, y2, col = scales::alpha(colvec[2], 0.3), pch = 19)
+      points(x1, y1, col = colvec_alpha[1], pch = 19)
+      points(x2, y2, col = colvec_alpha[2], pch = 19)
       abline(a = 0, b = 1, col = "red", lwd = 2, lty = 4)
       legend("bottomright", legend = c("fit_10", "fit_aic"), pch = 19,
              col = colvec[c(1, 2)], bty = "n")
