@@ -62,12 +62,18 @@ kfold_aic <- cache$kfold_aic
 \maketitle
 
 \abstract{
-An abstract of less than 150 words. Shortly mention what \pkg{OPSR} does and what \pkg{OPSRtools} brings to the table (and why separated). \pkg{OPSRtools} helps the modeler during model selection (\fct{opsr\_select}), to cross-validate (\fct{opsr\_kfold}), to compute treatment effects (\fct{opsr\_ate}) and to visualize the key insights from a model (\fct{pairs}). \code{print} methods for the various underlying objects allow the analyst to easily grasp the object's key information.
+The \pkg{OPSR} \proglang{R} package allows analysts to estimate ordered probit switching regression models, a form of endogenous switching regression, accounting for error correlation between an ordinal selection and continuous outcome processes. \pkg{OPSRtools}, introduced in this paper, helps the analyst during model selection (\fct{opsr\_select}), to cross-validate (\fct{opsr\_kfold} and \fct{kfplot}), to compute treatment effects (\fct{opsr\_ate}) and to visualize the key insights from a model (\fct{pairs}). \fct{print} methods for the various underlying objects allow the analyst to easily grasp the object's key information.
 }
 
 \section{Introduction}
 
-\section{Illustrations}
+The \pkg{OPSR} \proglang{R} package, intruduced in \citet{Heimgartner+Wang:2025}, provides an easy-to-use, fast and memory efficient interface to ordered probit switching regression (OPSR). OPSR is a form of endogenous switching regression, accounting for error correlation between an ordinal selection and continuous outcome processes. In spirit of \citet{Heckman:1979}, self-selection bias might result, if this error correlation is not explicitly modeled.
+
+While the \pkg{OPSR} package contains the minimal machinery to estimate such models, present their results and compute conditional expectations, it does not provide routines supporting model selection, cross-validation and the computation of treatment and average treatment effects. This is where \pkg{OPSRtools} steps in. Along functions and methods to compute and present (\fct{print}) the statistics in appropriate form, it also contains visualization routines.
+
+The remainder of this paper is organized as follows. In Section~\ref{sec:illustrations} the key functionality of the package is illustrated. Section~\ref{sec:identification} investigates differences in telework treatment effects if the error correlation is not accounted for as well as raises concerns about potential identification issues. Section~\ref{sec:summary} concludes.
+
+\section{Illustrations} \label{sec:illustrations}
 
 Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling telework adoption and weekly kilometers traveled. Telework adoption was differentiated into three ordered segments: no telework (NTW), non-usual telework (NUTW, <3 days/week) and usual telework (UTW, 3+ days/week). The data, based on the TimeUse+ study \citep{Winkler+Meister+Axhausen:2024}, is attached, documented (\code{?timeuse}) and can be loaded by
 %
@@ -75,9 +81,9 @@ Let us revisit the full model from \citet{Heimgartner+Axhausen:2025}, modeling t
 data("timeuse", package = "OPSRtools")
 @
 %
-Using \pkg{OPSR}'s functionality, the model can be estimated by
+Using \pkg{OPSR}'s functionality, the model can be estimated by (the formula \code{f} is hidden here for brevity but can be found on Page~\pageref{p:f} under \emph{Initial model})
 %
-<<full-model, results=hide>>=
+<<hidden-formula, echo=FALSE>>=
 f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
   log_commute_km + age + dogs + driverlicense + educ_higher + fixed_workplace +
   grocery_shopper + hh_income + hh_size + isco_clerical + isco_craft +
@@ -99,7 +105,9 @@ f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
   fixed_workplace + grocery_shopper + hh_income + hh_size + married +
   n_children + freq_onl_order + parking_work + permanent_employed + rents_home +
   res_loc + sex_male + swiss + vacation + workload + young_kids
-
+@
+%
+<<full-model, results=hide>>=
 fit <- opsr(f, data = timeuse, weights = timeuse$weight)
 @
 %
@@ -119,6 +127,7 @@ fit_aic <- opsr_select(fit, loss = "aic", printLevel = 0)
 @
 %
 where \code{"aic"} specifies that model selection is based on AIC. Other available options are \code{"bic"} for BIC and \code{"lrt"} for a likelihood ratio test. The above call yields an object of class \class{opsr.select} which can be printed to provide more information about the selection process (and elimination history, which is omitted here for brevity)
+\label{p:f}
 %
 <<print-opsr-select>>=
 print(fit_aic, print.elim.hist = FALSE)
@@ -166,7 +175,7 @@ ll_mean <- kfold["ll_mean"]
 list2df(ll_mean)
 @
 %
-The three cross-validation objects can be plotted against each other
+The three cross-validation objects can be plotted against each other using \fct{kfplot}
 <<kfplot, eval=FALSE>>=
 plot.it <- function(...) {
   op <- par(no.readonly = TRUE)
@@ -205,19 +214,19 @@ ate <- opsr_ate(fit_10, type = "unlog-response")
 print(ate)
 @
 %
-where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log transformed (log weekly kilometers traveled) before estimation. \fct{opsr\_ate} prepares the data returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} then performs the main computations, in particular a weighted paired $t$~test for the TE (with the null that TE is equal to 0). The method \fct{print.summary.opsr.ate} prints the results (method \fct{print.opsr.ate} redirects to \fct{summary} and a subsequent \fct{print} call).
+where we needed to specify \code{type = "unlog-response"} (which is passed to \fct{predict.opsr}) since the outcome variable was log-transformed (log weekly kilometers traveled) before estimation. \fct{opsr\_ate} prepares the data, returning an object of class \class{opsr.ate} and \fct{summary.opsr.ate} then performs the main computations, in particular a weighted paired $t$~test for the TE (with the null that the TE is equal to 0). The method \fct{print.summary.opsr.ate} prints the results (method \fct{print.opsr.ate} redirects to \fct{summary} and a subsequent \fct{print} call).
 
 Weights are automatically used to compute group-specific treatment effects and average treatment effects (ATE) if they were used during estimation but can be overridden by passing a new vector as \code{weights} argument to \fct{opsr\_ate}.
 
-Here we see, that all treatment effects are negative except for \code{G1} (the NTWers) when switching from \code{T1->T3} (NTWing to UTWing), \code{T2->T3} (NUTWing to UTWing) and \code{G2} (the NUTWers) when switching from \code{T2->T3} (NUTWing to UTWing). Consequently, resulting ATE are positive for \code{T1->T3} and \code{T2->T3}. All effects are significantly different from 0. However, the test does of course not reflect parameter uncertainty.
+Here we see, that the TE on the diagonal and upper triangle are negative, while we observe positive TE for \code{G1} (the NTWers) when switching from \code{T1->T3} (NTWing to UTWing), \code{T2->T3} (NUTWing to UTWing) and \code{G2} (the NUTWers) when switching from \code{T2->T3} (NUTWing to UTWing). Consequently, resulting ATE are positive for \code{T1->T3} and \code{T2->T3}. All effects are significantly different from 0. However, the test does of course not reflect parameter uncertainty.
 
-The treatment effects can be visually summarised by a call to \fct{pairs}
+The treatment effects can be visually summarised with \fct{pairs}
 %
 <<pairs, eval=FALSE>>=
 pairs(ate)
 @
 %
-Figure~\ref{fig:pairs} presents all potential pairs of regime switching. The diagonal depicts distributions of model-implied conditional expectations in any given treatment and separate by the current (factual) treatment group. The weighted mean values are shown as red numbers. The lower triangular panels compare the model-implied (predicted) outcomes of two treatment regimes, again separate by current treatment group. The red line indicates the 45-degree line of equal outcomes while the red squares depict the weighted mean values (corresponding to the reported numbers). The upper triangular panels show (weighted) average treatment effects.
+Figure~\ref{fig:pairs} presents all potential pairs of regime switching. The diagonal depicts distributions of model-implied conditional expectations in any given treatment and separate by the current (factual) treatment group. The weighted mean values are shown as red numbers. The lower triangular panels compare the model-implied (predicted) outcomes of two treatment regimes, again, separate by current treatment group. The red line indicates the 45-degree line of equal outcomes while the red squares depict the weighted mean values (corresponding to the reported numbers). The upper triangular panels show (weighted) average treatment effects.
 
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}[htbp]
@@ -231,7 +240,7 @@ pairs(ate, labels.diag = c("NTWing", "NUTWing", "UTWing"), col = colvec,
 \caption{\label{fig:pairs} Pairs plot: Comparison of conditional expectations (weekly km traveled) by telework status in the lower panel. Corresponding distributions on the diagonal. Average treatment effects in the upper panel.}
 \end{figure}
 
-\section{Investigating differences in treatment effects}
+\section{Investigating differences in treatment effects} \label{sec:identification}
 
 At this point, we should highlight, that these results (based on \fit{10}) are very different from the ones presented in \citet{Heimgartner+Axhausen:2025} (based on \fit{aic}), where we found negative TE and ATE only. We now further investigate, why these differences between the two models might arise. The following three hypothesis are scrutinized: 1. The large error correlation ``rho3'' in \fit{10} could inflate (counterfactual) weekly kilometers traveled of the NTWers and NUTWers when adopting NUTWing or UTWing via the Heckman correction term, 2. \fit{10} has fewer explanatory variables than \fit{aic} and therefore $\Xb$ in the two models differ, and, 3. The $\beta$ coefficients are very different (and therefore $\Xb$ in the two models differ).
 
@@ -241,7 +250,7 @@ Let us first revisit the conditional expectation of the OPSR model as stated in 
 \E[y_j \mid Z = j] = \underbrace{\Xb}_{{\text{\code{type = "Xb"}}}} - \underbrace{\rho_j\sigma_j \frac{\phi(\kappa_j - \Wg) - \phi(\kappa_{j-1} - \Wg)}{\Phi(\kappa_j - \Wg) - \Phi(\kappa_{j-1} - \Wg)}}_{{\text{\code{type = "correction"}}}},
 \end{equation}
 %
-where $\Xb$ is the linear combination underlying the continuous outcome, $\kappa_j$ and $\kappa_{j-1}$ are the thresholds of the ordered probit model, $\Wg$ is the linear combination modeling the latent propensity underlying the selection outcome, $\phi(\cdot)$ and $\Phi(\cdot)$ are the density and cumulative distribution function of the standard normal distribution. The fraction is the ordered probit switching regression model counterpart to the inverse Mills ratio (IMR) term of a binary switching regression model and the leading cause of selection bias. We also see, that higher $\rho_j$ (and/or higher $sigma_j$) ``inflates'' the Heckman correction by scaling this IMR.
+where $\Xb$ is the linear combination underlying the continuous outcome, $\kappa_j$ and $\kappa_{j-1}$ are the thresholds of the ordered probit model, $\Wg$ is the linear combination modeling the latent propensity underlying the selection outcome, $\phi(\cdot)$ and $\Phi(\cdot)$ are the density and cumulative distribution function of the standard normal distribution. The fraction is the ordered probit switching regression model counterpart to the inverse Mills ratio (IMR) term of a binary switching regression model and the leading cause of selection bias. We also see, that higher $\rho_j$ (and/or higher $\sigma_j$) ``inflates'' the Heckman correction by scaling the IMR.
 
 Similarly, the ``counterfactual outcome'' reflects the expected outcome under a counterfactual treatment (i.e., for $j' \neq j$) and can be expressed as
 %
@@ -249,7 +258,7 @@ Similarly, the ``counterfactual outcome'' reflects the expected outcome under a 
 \E[y_{j'} \mid Z = j] = \Xbd - \rho_{j'}\sigma_{j'} \frac{\phi(\kappa_j - \Wg) - \phi(\kappa_{j-1} - \Wg)}{\Phi(\kappa_j - \Wg) - \Phi(\kappa_{j-1} - \Wg)}.
 \end{equation}
 %
-\pkg{OPSR}'s \fct{predict} method can return both components by specifying \code{type = "Xb"} respectively \code{type = "correction"}. Since the dependent variable was log-transformed, the above formulas return the conditional expectation in the logs. The equations for the back-transformed conditional expectations can be found in \citet{Heimgartner+Wang:2025} and are derived in \citet{Wang+Mokhtarian:2024}.
+\pkg{OPSR}'s \fct{predict} method can return both components by specifying \code{type = "Xb"} respectively \code{type = "correction"} (as underbraced in Equation~\ref{eq:cond-exp}). Since the dependent variable was log-transformed, the above formulas return the conditional expectation in the logs. The equations for the back-transformed conditional expectations can be found in \citet{Heimgartner+Wang:2025} and are derived in \citet{Wang+Mokhtarian:2024}. However, in these equations, the decomposition into linear predictor and Heckman correction is no longer evident.
 
 \setkeys{Gin}{width=\textwidth}
 \begin{figure}[htbp]
@@ -406,16 +415,13 @@ writeLines(mat_tex)
 \caption{\label{tab:te-comparison} Treatment effect comparison. \code{nocor} implies the regular OLS fit with ``rho'' fixed at 0.}
 \end{table}
 
-This evidence suggests, that it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the $\beta$ coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables, then the error correlation might have a bigger influence on these estimates. Under (currently unknown) conditions, OPSR estimates might become unstable, suggesting extreme selection bias.
+This evidence suggests, that it is not actually the direct influence of the error correlation via the Heckman correction term but the indirect influence via the $\beta$ coefficients that leverages the predictions and thus treatment effect computations. And if we only have few explanatory variables, then the error correlation might have a bigger influence on these estimates. Under certain conditions, OPSR models might become poorly identified, suggesting extreme selection bias.
 
-\section{Summary}
+Identification issues of Heckman-type selection models have received considerable attention in the literature \citep[e.g.,][Puhani:2000], investigating conditions under which model estimation becomes challenging. In Monte Carlo simulation studies, the performance of LIML and FIML estimators are then usually compared. The main condition discussed is weak exclusion-restrictions (weak instruments; leading to colinearity between the IMR and $\boldsymbol{X}$) as elaborated in \citet{Chiburis+Lokshin:2007}. \citet{Huismans+etal:2022} discuss maximum likelihood estimation and parameter identification (for a Heckman-selection model with ordered outcomes) and state that in mixture models, the likelihood function may have multiple local maximums and large flat regions and suggest testing different starting values (in our case, both \fit{10} and \fit{aic} converge to the same optimum if we set starting values to 0, -1 for ``kappa1'', 1 for ``kappa2'' and 1 for the ``sigmas''). Since the IMR is technically a regressor, we speculate, that the limited variability (as observed in Figure~\ref{fig:heckman-correction}, in particular for UTWing, column 3) could also yield poor identification.
 
-\begin{leftbar}
-\begin{itemize}
-\item Would be nice to have some minimal discussion on stability concerns and give an outlook for future research.
-\item Find reference of unstable results Loshkin?
-\end{itemize}
-\end{leftbar}
+\section{Summary} \label{sec:summary}
+
+\pkg{OPSRtools} introduced in this article contains estimation and post-estimation routines for the \pkg{OPSR} \proglang{R} package, allowing modelers to efficiently specify, select and evaluate ordered probit switching regression models. Treatment effects are easily computed, summarised and visualized. We further investigated model-implied differences in treatment effects and why they might arise. Visualizations are proposed to scrutinize the influence of the Heckman correction term on predictions and thus treatment effects. However, we find that in our case study, treatment effects do not mainly differ because of this correction but because OPSR yields different (and hopefully unbiased) parameter estimates. We also raise concerns about the stability of such models and potential identification issues. It is left for future research to propose methods detecting poor identification and its leading cause.
 
 \section*{Computational details}
 

@@ -358,3 +358,56 @@ pairs(opsr_ate(fit_10, type = "unlog-response"))
 ## TODO
 ## maybe adjust/fix rho3 in fit_10 and check what happens
 
+
+
+
+
+## test different starting values
+devtools::load_all()
+library(OPSR)
+
+f <- wfh | log_weekly_km ~ wfh_allowed + teleworkability + start_tracking +
+  log_commute_km + age + dogs + driverlicense + educ_higher + fixed_workplace +
+  grocery_shopper + hh_income + hh_size + isco_clerical + isco_craft +
+  isco_managers + isco_plant + isco_professionals + isco_service + isco_agri +
+  isco_tech + married + n_children + freq_onl_order + parking_home +
+  parking_work + permanent_employed + rents_home + res_loc + sex_male +
+  shift_work + swiss + vacation + workload + young_kids |
+  start_tracking + log_commute_km + age + dogs + driverlicense + educ_higher +
+  fixed_workplace + grocery_shopper + hh_income + hh_size + married +
+  n_children + freq_onl_order + parking_home + parking_work +
+  permanent_employed + rents_home + res_loc + sex_male + shift_work + swiss +
+  vacation + workload + young_kids |
+  start_tracking + log_commute_km + age +
+  dogs + driverlicense + educ_higher + fixed_workplace + grocery_shopper +
+  hh_income + hh_size + married + n_children + freq_onl_order + parking_home +
+  parking_work + permanent_employed + rents_home + res_loc + sex_male +
+  shift_work + swiss + vacation + workload + young_kids |
+  start_tracking + log_commute_km + age + dogs + driverlicense + educ_higher +
+  fixed_workplace + grocery_shopper + hh_income + hh_size + married +
+  n_children + freq_onl_order + parking_work + permanent_employed + rents_home +
+  res_loc + sex_male + swiss + vacation + workload + young_kids
+
+fit <- opsr(f, data = timeuse, weights = timeuse$weight)
+fit_aic <- opsr_step(fit, pval = 0.4)
+
+start <- coef(fit_aic)
+start <- setNames(rep(0, length(start)), names(start))
+start[c("sigma1", "sigma2", "sigma3")] <- 1
+start[c("kappa1", "kappa2")] <- c(-1, 1)
+fit_aic_0 <- opsr(fit_aic$formula, data = timeuse, weights = timeuse$weight,
+                  start = start)
+summary(fit_aic_0)
+texreg::screenreg(list(fit_aic, fit_aic_0))
+#> exactly the same :)
+
+## now for fit_10
+fit_10 <- opsr_step(fit, pval = 0.1)
+start <- coef(fit_10)
+start <- setNames(rep(0, length(start)), names(start))
+start[c("sigma1", "sigma2", "sigma3")] <- 1
+start[c("kappa1", "kappa2")] <- c(-1, 1)
+fit_10_0 <- opsr(fit_10$formula, data = timeuse, weights = timeuse$weight,
+                 start = start)
+texreg::screenreg(list(fit_10, fit_10_0))
+#> also exactly the same
