@@ -1,3 +1,5 @@
+\donttest{
+
 sim_dat <- OPSR::opsr_simulate()
 dat <- sim_dat$data
 dat$xo3 <- runif(n = nrow(dat))
@@ -17,3 +19,5 @@ colvec <- c("#ff8811","#48a9a6")
 kfplot(list(kfold, kfold_select), col = colvec)
 legend("bottomleft", legend = c("fit", "fit_select"), fill = colvec,
        title = "Model", title.font = 2, bty = "n")
+
+}
