@@ -64,7 +64,7 @@ kfold_aic <- cache$kfold_aic
 \maketitle
 
 \abstract{
-The \pkg{OPSR} \proglang{R}-package allows analysts to estimate ordered probit switching regression models, a form of endogenous switching regression, accounting for error correlation between an ordinal selection and continuous outcome processes (e.g., the well-known Tobit-5 model for the case of two ordinal outcomes). \pkg{OPSRtools}, introduced in this paper, helps the analyst during model selection (\fct{opsr\_select}), to cross-validate (\fct{opsr\_kfold} and \fct{kfplot}), to compute treatment effects (\fct{opsr\_ate}) and to visualize the key insights from a model (\fct{pairs}). \fct{print} methods for the various underlying objects allow the analyst to easily grasp the object's key information.
+The \pkg{OPSR} \proglang{R}-package allows analysts to estimate ordered probit switching regression models, a form of endogenous switching regression, accounting for error correlation between an ordinal selection and continuous outcome processes (e.g., the well-known Tobit-5 model for the case of two regimes). \pkg{OPSRtools}, introduced in this paper, helps the analyst during model selection (\fct{opsr\_select}), to cross-validate (\fct{opsr\_kfold} and \fct{kfplot}), to compute treatment effects (\fct{opsr\_ate}) and to visualize the key insights from a model (\fct{pairs}). \fct{print} methods for the various underlying objects allow the analyst to easily grasp the object's key information.
 }
 
 \section{Introduction}
